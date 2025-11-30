@@ -1,0 +1,103 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <h1>📚 LearnHub</h1>
+      <p>{{isLoginMode ? 'Vitaj späť!' : 'Vytvor si účet'}}</p>
+    </div>
+
+    <!-- Login Form -->
+    <form *ngIf="isLoginMode" (ngSubmit)="onLogin()" class="auth-form">
+      <div class="form-group">
+        <label for="login-email">Email</label>
+        <input 
+          type="email" 
+          id="login-email" 
+          [(ngModel)]="loginEmail" 
+          name="loginEmail"
+          placeholder="Zadaj svoj email"
+          required>
+      </div>
+
+      <div class="form-group">
+        <label for="login-password">Heslo</label>
+        <input 
+          type="password" 
+          id="login-password" 
+          [(ngModel)]="loginPassword" 
+          name="loginPassword"
+          placeholder="Zadaj svoje heslo"
+          required>
+      </div>
+
+      <div class="error-message" *ngIf="errorMessage">
+        {{errorMessage}}
+      </div>
+
+      <button type="submit" class="btn btn-primary">Prihlásiť sa</button>
+    </form>
+
+    <!-- Register Form -->
+    <form *ngIf="!isLoginMode" (ngSubmit)="onRegister()" class="auth-form">
+      <div class="form-group">
+        <label for="register-name">Meno</label>
+        <input 
+          type="text" 
+          id="register-name" 
+          [(ngModel)]="registerName" 
+          name="registerName"
+          placeholder="Zadaj svoje meno"
+          required>
+      </div>
+
+      <div class="form-group">
+        <label for="register-email">Email</label>
+        <input 
+          type="email" 
+          id="register-email" 
+          [(ngModel)]="registerEmail" 
+          name="registerEmail"
+          placeholder="Zadaj svoj email"
+          required>
+      </div>
+
+      <div class="form-group">
+        <label for="register-password">Heslo</label>
+        <input 
+          type="password" 
+          id="register-password" 
+          [(ngModel)]="registerPassword" 
+          name="registerPassword"
+          placeholder="Minimálne 6 znakov"
+          required>
+      </div>
+
+      <div class="form-group">
+        <label for="register-password-confirm">Potvrď heslo</label>
+        <input 
+          type="password" 
+          id="register-password-confirm" 
+          [(ngModel)]="registerPasswordConfirm" 
+          name="registerPasswordConfirm"
+          placeholder="Zadaj heslo znova"
+          required>
+      </div>
+
+      <div class="error-message" *ngIf="errorMessage">
+        {{errorMessage}}
+      </div>
+
+      <button type="submit" class="btn btn-primary">Registrovať sa</button>
+    </form>
+
+    <div class="switch-mode">
+      <p *ngIf="isLoginMode">
+        Nemáš účet? 
+        <a (click)="switchMode()">Registruj sa tu</a>
+      </p>
+      <p *ngIf="!isLoginMode">
+        Už máš účet? 
+        <a (click)="switchMode()">Prihlás sa tu</a>
+      </p>
+    </div>
+  </div>
+</div>

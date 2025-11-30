@@ -1,0 +1,82 @@
+<div class="profile-container">
+  <div class="profile-header">
+    <div class="profile-avatar">
+      <span class="avatar-icon">👤</span>
+      <div class="level-badge">{{userLevel}}</div>
+    </div>
+    <div class="profile-info">
+      <h1>{{userName}}</h1>
+      <p class="user-email">{{userEmail}}</p>
+      <div class="user-stats">
+        <div class="stat-item">
+          <span class="stat-icon">🔥</span>
+          <span>{{streak}} dní streak</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-icon">📅</span>
+          <span>Člen od {{joinedDate}}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="xp-card">
+    <div class="xp-header">
+      <h2>Level {{userLevel}}</h2>
+      <span class="xp-text">{{currentXP}} / {{xpForNextLevel}} XP</span>
+    </div>
+    <div class="xp-bar">
+      <div class="xp-fill" [style.width.%]="xpPercentage"></div>
+    </div>
+    <p class="xp-info">Ešte {{xpForNextLevel - currentXP}} XP do ďalšieho levelu!</p>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon-large">📝</div>
+      <div class="stat-number">{{totalTests}}</div>
+      <div class="stat-label">Testov dokončených</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon-large">🎯</div>
+      <div class="stat-number">{{averageScore}}%</div>
+      <div class="stat-label">Priemerná úspešnosť</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon-large">⭐</div>
+      <div class="stat-number">{{totalXP}}</div>
+      <div class="stat-label">Celkové XP</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon-large">📚</div>
+      <div class="stat-number">{{studyHours}}h</div>
+      <div class="stat-label">Hodín štúdia</div>
+    </div>
+  </div>
+
+  <div class="achievements-section">
+    <h2>Odznaky</h2>
+    <div class="achievements-grid">
+      <div class="achievement-card" [class.unlocked]="achievement.unlocked" 
+           *ngFor="let achievement of achievements">
+        <div class="achievement-icon">{{achievement.icon}}</div>
+        <div class="achievement-name">{{achievement.name}}</div>
+        <div class="achievement-desc">{{achievement.description}}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="recent-activity">
+    <h2>Posledná aktivita</h2>
+    <div class="activity-list">
+      <div class="activity-item" *ngFor="let activity of recentActivity">
+        <div class="activity-icon">{{activity.icon}}</div>
+        <div class="activity-content">
+          <div class="activity-title">{{activity.title}}</div>
+          <div class="activity-time">{{activity.time}}</div>
+        </div>
+        <div class="activity-score">+{{activity.xp}} XP</div>
+      </div>
+    </div>
+  </div>
+</div>
