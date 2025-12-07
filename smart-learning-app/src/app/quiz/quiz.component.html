@@ -4,7 +4,7 @@
     <div class="quiz-info">
       <div class="info-item">
         <span class="icon">📝</span>
-        <span>Otázka {{currentQuestion + 1}}/{{questions.length}}</span>
+        <span>Otázka {{currentQuestion + 1}}/{{questions().length}}</span>
       </div>
       <div class="info-item">
         <span class="icon">⏱️</span>
@@ -21,12 +21,12 @@
     <div class="progress-fill" [style.width.%]="progressPercentage"></div>
   </div>
 
-  <div class="question-card" *ngIf="!quizFinished">
-    <h2 class="question-text">{{questions[currentQuestion].question}}</h2>
+  <div class="question-card" *ngIf="!quizFinished && questions().length > 0">
+    <h2 class="question-text">{{questions()[currentQuestion].question}}</h2>
     
     <div class="answers-grid">
       <button 
-        *ngFor="let answer of questions[currentQuestion].answers; let i = index"
+        *ngFor="let answer of questions()[currentQuestion].answers; let i = index"
         class="answer-btn"
         [class.selected]="selectedAnswer === i"
         (click)="selectAnswer(i)">
@@ -35,8 +35,12 @@
     </div>
 
     <button class="btn btn-next" (click)="nextQuestion()" [disabled]="selectedAnswer === null">
-      {{currentQuestion === questions.length - 1 ? 'Dokončiť' : 'Ďalej'}}
+      {{currentQuestion === questions().length - 1 ? 'Dokončiť' : 'Ďalej'}}
     </button>
+  </div>
+
+  <div class="loading" *ngIf="loading">
+    <p>Načítavam otázky...</p>
   </div>
 
   <div class="results-card" *ngIf="quizFinished">
@@ -44,11 +48,11 @@
     <h2>Test dokončený!</h2>
     <div class="results-stats">
       <div class="stat">
-        <div class="stat-value">{{score}}/{{questions.length * 10}}</div>
+        <div class="stat-value">{{score}}/{{questions().length * 10}}</div>
         <div class="stat-label">Bodov</div>
       </div>
       <div class="stat">
-        <div class="stat-value">{{correctAnswers}}/{{questions.length}}</div>
+        <div class="stat-value">{{correctAnswers}}/{{questions().length}}</div>
         <div class="stat-label">Správne</div>
       </div>
       <div class="stat">

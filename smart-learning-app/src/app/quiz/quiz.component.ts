@@ -1,13 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-
-interface Question {
-  question: string;
-  answers: string[];
-  correctAnswer: number;
-  topic: string;
-}
+import { UserService } from '../services/user.service';
+import { FirebaseService, Question } from '../services/firebase.service';
 
 @Component({
   selector: 'app-quiz',
@@ -16,53 +11,63 @@ interface Question {
   templateUrl: './quiz.component.html',
   styleUrl: './quiz.component.css'
 })
-export class QuizComponent {
-  questions: Question[] = [
-    {
-      question: 'Koľko je 2 + 2?',
-      answers: ['3', '4', '5', '6'],
-      correctAnswer: 1,
-      topic: 'základné operácie'
-    },
-    {
-      question: 'Čo je výsledok 5 × 3?',
-      answers: ['10', '12', '15', '18'],
-      correctAnswer: 2,
-      topic: 'násobenie'
-    },
-    {
-      question: 'Koľko je 10 - 7?',
-      answers: ['2', '3', '4', '5'],
-      correctAnswer: 1,
-      topic: 'odčítanie'
-    },
-    {
-      question: 'Čo je výsledok 12 ÷ 4?',
-      answers: ['2', '3', '4', '6'],
-      correctAnswer: 1,
-      topic: 'delenie'
-    },
-    {
-      question: 'Koľko je 8 + 7?',
-      answers: ['14', '15', '16', '17'],
-      correctAnswer: 1,
-      topic: 'sčítanie'
-    }
-  ];
+export class QuizComponent implements OnInit {
+  private userService = inject(UserService);
+  private firebaseService = inject(FirebaseService);
 
+  questions = signal<Question[]>([]);
   currentQuestion = 0;
   selectedAnswer: number | null = null;
   score = 0;
   correctAnswers = 0;
   quizFinished = false;
-  timeRemaining = 300; // 5 minút
+  timeRemaining = 300;
+  loading = true;
+  error = signal<string | null>(null);
+  selectedCategory = 'kombinatorika';
+
+  ngOnInit() {
+    this.loadQuestions();
+  }
+
+  loadQuestions() {
+    this.loading = true;
+    this.error.set(null);
+    
+    this.firebaseService.getQuestions(this.selectedCategory).subscribe({
+      next: (questions) => {
+        console.log('Načítané otázky:', questions);
+        
+        if (questions.length === 0) {
+          this.error.set('Žiadne otázky pre túto kategóriu');
+        }
+        
+        this.questions.set(questions);
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error loading questions:', error);
+        this.error.set('Chyba pri načítavaní otázok: ' + error.message);
+        this.loading = false;
+      }
+    });
+  }
+
+  get currentQ(): Question | undefined {
+    const questions = this.questions();
+    return questions.length > 0 ? questions[this.currentQuestion] : undefined;
+  }
 
   get progressPercentage(): number {
-    return (this.currentQuestion / this.questions.length) * 100;
+    const questions = this.questions();
+    if (questions.length === 0) return 0;
+    return (this.currentQuestion / questions.length) * 100;
   }
 
   get percentage(): number {
-    return Math.round((this.correctAnswers / this.questions.length) * 100);
+    const questions = this.questions();
+    if (questions.length === 0) return 0;
+    return Math.round((this.correctAnswers / questions.length) * 100);
   }
 
   selectAnswer(index: number): void {
@@ -70,21 +75,48 @@ export class QuizComponent {
   }
 
   nextQuestion(): void {
-    if (this.selectedAnswer !== null) {
-      // Skontroluj odpoveď
-      if (this.selectedAnswer === this.questions[this.currentQuestion].correctAnswer) {
-        this.score += 10;
-        this.correctAnswers++;
-      }
-
-      // Ďalšia otázka alebo koniec
-      if (this.currentQuestion < this.questions.length - 1) {
-        this.currentQuestion++;
-        this.selectedAnswer = null;
-      } else {
-        this.quizFinished = true;
-      }
+    if (this.selectedAnswer === null) {
+      return; // Nič nie je vybrané
     }
+
+    const questions = this.questions();
+    const currentQ = questions[this.currentQuestion];
+    
+    // Kontrola, či currentQ existuje
+    if (!currentQ) {
+      console.error('Aktuálna otázka neexistuje');
+      return;
+    }
+
+    // Bezpečný prístup k correctAnswer a points
+    const correctAnswer = currentQ.correctAnswer ?? 0;
+    const points = currentQ.points ?? 10;
+
+    if (this.selectedAnswer === correctAnswer) {
+      this.score += points;
+      this.correctAnswers++;
+    }
+
+    if (this.currentQuestion < questions.length - 1) {
+      this.currentQuestion++;
+      this.selectedAnswer = null;
+    } else {
+      this.finishQuiz();
+    }
+  }
+
+  finishQuiz(): void {
+    this.quizFinished = true;
+    
+    const questions = this.questions();
+    const maxScore = questions.reduce((sum, q) => sum + (q.points ?? 10), 0);
+    
+    this.userService.addTestResult({
+      subject: 'Matematika - ' + this.selectedCategory,
+      score: this.score,
+      maxScore: maxScore,
+      percentage: this.percentage
+    });
   }
 
   restartQuiz(): void {
@@ -94,5 +126,6 @@ export class QuizComponent {
     this.correctAnswers = 0;
     this.quizFinished = false;
     this.timeRemaining = 300;
+    this.loadQuestions();
   }
 }
