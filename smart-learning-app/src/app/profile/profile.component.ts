@@ -51,8 +51,8 @@ export class ProfileComponent {
     },
     {
       icon: '⭐',
-      name: 'Level 3',
-      description: 'Dosiahol si level 3',
+      name: 'Level 1',
+      description: 'Dosiahol si level 1',
       unlocked: true
     },
     {
@@ -64,7 +64,7 @@ export class ProfileComponent {
     {
       icon: '📚',
       name: 'Bookworm',
-      description: 'Prečítal si 10 článkov',
+      description: 'Prečítal si 4 články',
       unlocked: false
     },
     {
@@ -85,21 +85,21 @@ export class ProfileComponent {
     },
     {
       icon: '📚',
-      title: 'Prečítaný článok: Rovnice',
-      time: 'Dnes',
+      title: 'Prečítaný článok: Kombinatorika',
+      time: 'Včera',
       xp: 10
     },
     {
       icon: '🎯',
-      title: 'Slovenský jazyk kvíz',
+      title: 'Matematika kvíz',
       time: 'Včera',
       xp: 30
     },
     {
       icon: '⭐',
-      title: 'Dosiahnutý level 3',
+      title: 'Dosiahnutý level 1',
       time: 'Pred 2 dňami',
-      xp: 100
+      xp: 0
     }
   ];
 
