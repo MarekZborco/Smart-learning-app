@@ -15,10 +15,10 @@
     <div class="nav-user" *ngIf="currentUser(); else loginBtn">
       <div class="xp-badge">
         <span class="xp-icon">⭐</span>
-        <span>{{currentUser()?.xp}} XP</span>
+        <span>{{currentUser()!.totalXP}} XP</span>
       </div>
       <div class="level-badge">
-        LVL {{currentUser()?.level}}
+        LVL {{currentUser()!.level}}
       </div>
       <a routerLink="/profile" class="profile-btn">
         <span>👤</span>

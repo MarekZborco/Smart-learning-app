@@ -1,7 +1,7 @@
 <div class="materials-container">
   <div class="materials-header">
     <h1>Študijné materiály</h1>
-    <p>Vyber si kategóriu a študuj materiály k danej téme</p>
+    <p>Vyber si kategóriu a štúduj materiály k danej téme</p>
   </div>
 
   <!-- Výber kategórie -->
@@ -32,34 +32,16 @@
     </button>
   </div>
 
-  <!-- Materiály pre Kombinatoriku -->
-  <div class="materials-content" *ngIf="selectedCategory() === 'kombinatorika'">
+  <!-- Materiály pre zvolenú kategóriu -->
+  <div class="materials-content">
     <div class="section">
       <h2>📹 Video materiály</h2>
       <div class="materials-grid">
-        <div class="material-card video">
+        <div class="material-card video" *ngFor="let video of getMaterialsForCategory(selectedCategory()).videos">
           <div class="material-icon">📺</div>
-          <h3>Kombinatorické pravidlo súčinu</h3>
-          <p>Základné pravidlo kombinatoriky - ako postupovať pri výpočtoch</p>
-          <a href="https://www.youtube.com/results?search_query=kombinatorika+pravidlo+súčinu" target="_blank" class="btn">
-            Pozrieť video
-          </a>
-        </div>
-
-        <div class="material-card video">
-          <div class="material-icon">📺</div>
-          <h3>Variácie s opakovaním</h3>
-          <p>Pochopenie variácií, kde sa prvky môžu opakovať</p>
-          <a href="https://www.youtube.com/results?search_query=variácie+s+opakovaním" target="_blank" class="btn">
-            Pozrieť video
-          </a>
-        </div>
-
-        <div class="material-card video">
-          <div class="material-icon">📺</div>
-          <h3>Permutácie a faktoriál</h3>
-          <p>Vysvetlenie permutácií a práce s faktoriálom</p>
-          <a href="https://www.youtube.com/results?search_query=permutácie+faktoriál" target="_blank" class="btn">
+          <h3>{{video.title}}</h3>
+          <p>{{video.description}}</p>
+          <a [href]="video.url" target="_blank" class="btn">
             Pozrieť video
           </a>
         </div>
@@ -69,25 +51,12 @@
     <div class="section">
       <h2>📝 Cvičenia a príklady</h2>
       <div class="exercises-list">
-        <div class="exercise-item">
-          <span class="exercise-number">1.1</span>
-          <span class="exercise-text">Určte, koľko dvojjazyčných slovníkov sa musí vydať pre 4 jazyky</span>
-          <span class="exercise-difficulty easy">Ľahké</span>
-        </div>
-        <div class="exercise-item">
-          <span class="exercise-number">1.2</span>
-          <span class="exercise-text">Z mesta A do mesta D cez B a C - počet ciest</span>
-          <span class="exercise-difficulty easy">Ľahké</span>
-        </div>
-        <div class="exercise-item">
-          <span class="exercise-number">1.12</span>
-          <span class="exercise-text">Koľko štvorciferných čísel z číslic 1,2,3,4,5?</span>
-          <span class="exercise-difficulty medium">Stredné</span>
-        </div>
-        <div class="exercise-item">
-          <span class="exercise-number">1.20</span>
-          <span class="exercise-text">Výber predsedu, podpredsedu z 10 ľudí</span>
-          <span class="exercise-difficulty medium">Stredné</span>
+        <div class="exercise-item" *ngFor="let exercise of getMaterialsForCategory(selectedCategory()).exercises">
+          <span class="exercise-number">{{exercise.number}}</span>
+          <span class="exercise-text">{{exercise.text}}</span>
+          <span class="exercise-difficulty" [ngClass]="exercise.difficulty">
+            {{exercise.difficulty === 'easy' ? 'Ľahké' : exercise.difficulty === 'medium' ? 'Stredné' : 'Ťažké'}}
+          </span>
         </div>
       </div>
     </div>
@@ -95,42 +64,13 @@
     <div class="section">
       <h2>📚 Teoretické pojmy</h2>
       <div class="theory-cards">
-        <div class="theory-card">
-          <h3>Kombinatorické pravidlo súčinu</h3>
-          <p>Ak tvoríme usporiadané dvojice, kde prvý člen môžeme vybrať n₁ spôsobmi a druhý člen n₂ spôsobmi, celkový počet je <strong>n₁ × n₂</strong></p>
-          <div class="formula">n₁ × n₂ = počet všetkých možností</div>
-        </div>
-
-        <div class="theory-card">
-          <h3>Variácie s opakovaním</h3>
-          <p>Variácie k-tej triedy z n prvkov s opakovaním:</p>
-          <div class="formula">V'ₖ(n) = nᵏ</div>
-          <p class="note">Prvky sa môžu opakovať, záleží na poradí</p>
-        </div>
-
-        <div class="theory-card">
-          <h3>Permutácie</h3>
-          <p>Počet všetkých usporiadaní n prvkov:</p>
-          <div class="formula">P(n) = n!</div>
-          <p class="note">n! = n × (n-1) × (n-2) × ... × 2 × 1</p>
-        </div>
-
-        <div class="theory-card">
-          <h3>Kombinácie</h3>
-          <p>Výber k prvkov z n prvkov (nezáleží na poradí):</p>
-          <div class="formula">C(n,k) = n! / (k! × (n-k)!)</div>
-          <p class="note">Nezáleží na poradí výberu</p>
+        <div class="theory-card" *ngFor="let theory of getMaterialsForCategory(selectedCategory()).theory">
+          <h3>{{theory.title}}</h3>
+          <p>{{theory.content}}</p>
+          <div class="formula">{{theory.formula}}</div>
+          <p class="note" *ngIf="theory.note">{{theory.note}}</p>
         </div>
       </div>
-    </div>
-  </div>
-
-  <!-- Ostatné kategórie -->
-  <div class="materials-content" *ngIf="selectedCategory() !== 'kombinatorika'">
-    <div class="coming-soon">
-      <div class="coming-soon-icon">🚧</div>
-      <h2>Materiály pre túto kategóriu sa pripravujú</h2>
-      <p>Zatiaľ si pozri materiály z Kombinatoriky</p>
     </div>
   </div>
 </div>

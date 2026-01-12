@@ -1,20 +1,14 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../services/auth.service';
-import { Router } from '@angular/router';
+import { UserService } from '../services/user.service';
 
 interface Achievement {
   icon: string;
   name: string;
   description: string;
   unlocked: boolean;
-}
-
-interface Activity {
-  icon: string;
-  title: string;
-  time: string;
-  xp: number;
 }
 
 @Component({
@@ -26,82 +20,57 @@ interface Activity {
 })
 export class ProfileComponent {
   authService = inject(AuthService);
-  router = inject(Router);
+  userService = inject(UserService);
   
   currentUser = this.authService.currentUser;
+  stats = this.userService.stats;
+  activities = this.userService.activities;
+  testResults = this.userService.testResults;
 
-  // Stats
-  totalTests = 12;
-  averageScore = 78;
-  studyHours = 8;
-
-  // Achievements
-  achievements: Achievement[] = [
-    {
-      icon: '🎯',
-      name: 'Prvý test',
-      description: 'Dokončil si svoj prvý test',
-      unlocked: true
-    },
-    {
-      icon: '🔥',
-      name: 'Streak 5',
-      description: '5 dní po sebe',
-      unlocked: true
-    },
-    {
-      icon: '⭐',
-      name: 'Level 3',
-      description: 'Dosiahol si level 3',
-      unlocked: true
-    },
-    {
-      icon: '💯',
-      name: 'Perfektný test',
-      description: '100% úspešnosť',
-      unlocked: false
-    },
-    {
-      icon: '📚',
-      name: 'Bookworm',
-      description: 'Prečítal si 10 článkov',
-      unlocked: false
-    },
-    {
-      icon: '🏆',
-      name: 'Majster',
-      description: 'Dosiahol si level 10',
-      unlocked: false
-    }
-  ];
-
-  // Recent activity
-  recentActivity: Activity[] = [
-    {
-      icon: '📝',
-      title: 'Matematika test dokončený',
-      time: 'Pred 2 hodinami',
-      xp: 50
-    },
-    {
-      icon: '📚',
-      title: 'Prečítaný článok: Rovnice',
-      time: 'Dnes',
-      xp: 10
-    },
-    {
-      icon: '🎯',
-      title: 'Slovenský jazyk kvíz',
-      time: 'Včera',
-      xp: 30
-    },
-    {
-      icon: '⭐',
-      title: 'Dosiahnutý level 3',
-      time: 'Pred 2 dňami',
-      xp: 100
-    }
-  ];
+  get achievements(): Achievement[] {
+    const user = this.currentUser();
+    const stats = this.stats();
+    const results = this.testResults();
+    
+    return [
+      {
+        icon: '🎯',
+        name: 'Prvý test',
+        description: 'Dokončil si svoj prvý test z matematiky',
+        unlocked: stats.totalTests >= 1
+      },
+      {
+        icon: '📝',
+        name: 'Pilný študent',
+        description: 'Dokončil si 5 testov',
+        unlocked: stats.totalTests >= 5
+      },
+      {
+        icon: '⭐',
+        name: 'Level 3',
+        description: 'Dosiahol si level 3',
+        unlocked: (user?.level || 0) >= 3
+      },
+      {
+        icon: '💯',
+        name: 'Perfektný test',
+        description: 'Dosiahol si 100% úspešnosť v teste',
+        unlocked: results.some(t => t.percentage === 100)
+      },
+      {
+        icon: '🔥',
+        name: 'Streak 5',
+        description: '5 dní po sebe',
+        unlocked: (user?.streak || 0) >= 5
+      },
+      {
+        icon: '🏆',
+        name: 'Majster',
+        description: 'Dosiahol si level 10',
+        unlocked: (user?.level || 0) >= 10
+      }
+    ];
+  }
 
   get userName(): string {
     return this.currentUser()?.name || 'Študent';
@@ -120,6 +89,7 @@ export class ProfileComponent {
   }
 
   get totalXP(): number {
+    // KRITICKÉ: Použiť totalXP z usera, nie zo stats
     return this.currentUser()?.totalXP || 0;
   }
 
@@ -128,14 +98,33 @@ export class ProfileComponent {
   }
 
   get joinedDate(): string {
-    return this.currentUser()?.joinedDate || 'November 2024';
+    return this.currentUser()?.joinedDate || 'Dnes';
   }
 
   get xpForNextLevel(): number {
-    return Math.floor(100 * Math.pow(1.5, this.userLevel));
+    return Math.floor(100 * Math.pow(1.5, this.userLevel - 1));
   }
 
   get xpPercentage(): number {
+    if (this.xpForNextLevel === 0) return 0;
     return (this.currentXP / this.xpForNextLevel) * 100;
+  }
+
+  // POUŽIŤ STATS Z UserService
+  get totalTests(): number {
+    return this.stats().totalTests;
+  }
+
+  get averageScore(): number {
+    return this.stats().averageScore;
+  }
+
+  get studyHours(): number {
+    return this.stats().studyHours;
+  }
+
+  // FORMÁTOVANÉ AKTIVITY
+  get recentActivity() {
+    return this.activities().slice(0, 4); // Zobraz len 4 najnovšie
   }
 }

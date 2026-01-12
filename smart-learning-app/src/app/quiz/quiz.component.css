@@ -194,3 +194,209 @@
 .btn-secondary:hover {
   background: rgba(255, 255, 255, 0.2);
 }
+/* Správna odpoveď - zelená */
+.answer-btn.correct {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+  border-color: #16a34a !important;
+  animation: correctPulse 0.5s ease;
+}
+
+/* Nesprávna odpoveď - červená */
+.answer-btn.wrong {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  border-color: #dc2626 !important;
+  animation: wrongShake 0.5s ease;
+}
+
+/* Animácia pre správnu odpoveď */
+@keyframes correctPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Animácia pre nesprávnu odpoveď */
+@keyframes wrongShake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-10px);
+  }
+  75% {
+    transform: translateX(10px);
+  }
+}
+
+/* Disabled stav počas zobrazenia výsledku */
+.answer-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.9;
+}
+/* Pridaj na KONIEC tvojho existujúceho quiz.component.css */
+
+/* Správna odpoveď - zelená */
+.answer-btn.correct {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+  border-color: #16a34a !important;
+  color: white !important;
+  animation: correctPulse 0.5s ease;
+}
+
+/* Nesprávna odpoveď - červená */
+.answer-btn.wrong {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  border-color: #dc2626 !important;
+  color: white !important;
+  animation: wrongShake 0.5s ease;
+}
+
+/* Animácia pre správnu odpoveď */
+@keyframes correctPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Animácia pre nesprávnu odpoveď */
+@keyframes wrongShake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-10px);
+  }
+  75% {
+    transform: translateX(10px);
+  }
+}
+
+/* Disabled stav počas zobrazenia výsledku */
+.answer-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.9;
+}
+
+/* Uistíme sa že text je vždy viditeľný */
+.answer-btn {
+  color: white;
+}
+/* Pridaj na KONIEC tvojho quiz.component.css */
+
+/* Výber kategórie */
+.category-selection {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+.category-selection h1 {
+  font-size: 2rem;
+  color: white;
+  margin-bottom: 3rem;
+}
+
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+}
+
+.category-btn {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  padding: 2rem;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.category-btn:hover {
+  transform: translateY(-10px);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: #667eea;
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+}
+
+.category-icon {
+  font-size: 4rem;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.category-btn h3 {
+  font-size: 1.5rem;
+  color: white;
+  margin-bottom: 0.5rem;
+}
+
+.category-btn p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* Správna odpoveď - zelená */
+.answer-btn.correct {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+  border-color: #16a34a !important;
+  color: white !important;
+  animation: correctPulse 0.5s ease;
+}
+
+/* Nesprávna odpoveď - červená */
+.answer-btn.wrong {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  border-color: #dc2626 !important;
+  color: white !important;
+  animation: wrongShake 0.5s ease;
+}
+
+/* Animácia pre správnu odpoveď */
+@keyframes correctPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Animácia pre nesprávnu odpoveď */
+@keyframes wrongShake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-10px);
+  }
+  75% {
+    transform: translateX(10px);
+  }
+}
+
+/* Disabled stav */
+.answer-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.9;
+}
+
+/* Text v tlačidlách */
+.answer-btn {
+  color: white;
+}
+
+/* Tretie tlačidlo */
+.btn-tertiary {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}

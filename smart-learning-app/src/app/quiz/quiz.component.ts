@@ -21,13 +21,48 @@ export class QuizComponent implements OnInit {
   score = 0;
   correctAnswers = 0;
   quizFinished = false;
+  quizStarted = false; // NOVÉ
   timeRemaining = 300;
-  loading = true;
+  loading = false;
   error = signal<string | null>(null);
-  selectedCategory = 'kombinatorika';
+  selectedCategory = '';
+  
+  showingResult = false;
+  isCorrect = false;
+  correctAnswerIndex: number | null = null;
 
   ngOnInit() {
+    // Nespúšťame automaticky, čakáme na výber kategórie
+  }
+
+  // NOVÉ: Výber kategórie
+  selectCategory(category: string) {
+    this.selectedCategory = category;
+    this.quizStarted = true;
     this.loadQuestions();
+  }
+
+  // NOVÉ: Späť na výber kategórií
+  backToCategories() {
+    this.quizStarted = false;
+    this.quizFinished = false;
+    this.currentQuestion = 0;
+    this.selectedAnswer = null;
+    this.score = 0;
+    this.correctAnswers = 0;
+    this.showingResult = false;
+    this.questions.set([]);
+  }
+
+  // NOVÉ: Meno kategórie
+  getCategoryName(): string {
+    const names: { [key: string]: string } = {
+      'kombinatorika': 'Kombinatorika',
+      'pravdepodobnost': 'Pravdepodobnosť',
+      'statistika': 'Štatistika',
+      'postupnosti': 'Postupnosti'
+    };
+    return names[this.selectedCategory] || 'Test';
   }
 
   loadQuestions() {
@@ -71,35 +106,55 @@ export class QuizComponent implements OnInit {
   }
 
   selectAnswer(index: number): void {
+    if (this.showingResult) return;
     this.selectedAnswer = index;
   }
 
   nextQuestion(): void {
     if (this.selectedAnswer === null) {
-      return; // Nič nie je vybrané
+      return;
+    }
+
+    if (this.showingResult) {
+      this.moveToNextQuestion();
+      return;
     }
 
     const questions = this.questions();
     const currentQ = questions[this.currentQuestion];
     
-    // Kontrola, či currentQ existuje
     if (!currentQ) {
       console.error('Aktuálna otázka neexistuje');
       return;
     }
 
-    // Bezpečný prístup k correctAnswer a points
     const correctAnswer = currentQ.correctAnswer ?? 0;
     const points = currentQ.points ?? 10;
 
-    if (this.selectedAnswer === correctAnswer) {
+    this.isCorrect = this.selectedAnswer === correctAnswer;
+    this.correctAnswerIndex = correctAnswer;
+    
+    if (this.isCorrect) {
       this.score += points;
       this.correctAnswers++;
     }
 
+    this.showingResult = true;
+
+    setTimeout(() => {
+      this.moveToNextQuestion();
+    }, 1500);
+  }
+
+  private moveToNextQuestion(): void {
+    const questions = this.questions();
+    
     if (this.currentQuestion < questions.length - 1) {
       this.currentQuestion++;
       this.selectedAnswer = null;
+      this.showingResult = false;
+      this.isCorrect = false;
+      this.correctAnswerIndex = null;
     } else {
       this.finishQuiz();
     }
@@ -110,13 +165,40 @@ export class QuizComponent implements OnInit {
     
     const questions = this.questions();
     const maxScore = questions.reduce((sum, q) => sum + (q.points ?? 10), 0);
+    const topics = [...new Set(questions.map(q => q.topic))];
     
     this.userService.addTestResult({
-      subject: 'Matematika - ' + this.selectedCategory,
+      subject: 'Matematika - ' + this.getCategoryName(),
+      category: this.selectedCategory,
       score: this.score,
       maxScore: maxScore,
-      percentage: this.percentage
+      percentage: this.percentage,
+      correctAnswers: this.correctAnswers,
+      totalQuestions: questions.length,
+      topics: topics
     });
+
+    console.log('✅ Test dokončený:', {
+      percentage: this.percentage,
+      correctAnswers: this.correctAnswers,
+      totalQuestions: questions.length
+    });
+  }
+
+  getAnswerClass(index: number): string {
+    if (!this.showingResult) {
+      return this.selectedAnswer === index ? 'selected' : '';
+    }
+    
+    if (index === this.correctAnswerIndex) {
+      return 'correct';
+    }
+    
+    if (index === this.selectedAnswer && !this.isCorrect) {
+      return 'wrong';
+    }
+    
+    return '';
   }
 
   restartQuiz(): void {
@@ -126,6 +208,9 @@ export class QuizComponent implements OnInit {
     this.correctAnswers = 0;
     this.quizFinished = false;
     this.timeRemaining = 300;
+    this.showingResult = false;
+    this.isCorrect = false;
+    this.correctAnswerIndex = null;
     this.loadQuestions();
   }
 }
