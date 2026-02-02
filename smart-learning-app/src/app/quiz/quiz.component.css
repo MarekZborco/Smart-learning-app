@@ -1,9 +1,25 @@
-.quiz-container {
-  max-width: 900px;
+/* Wrapper pre quiz + kalkulačku */
+.quiz-wrapper {
+  display: flex;
+  gap: 2rem;
+  max-width: 1600px;
   margin: 0 auto;
   padding: 2rem;
 }
 
+.quiz-container {
+  flex: 1;
+  max-width: 900px;
+}
+
+.calculator-sidebar {
+  position: sticky;
+  top: 90px;
+  height: fit-content;
+  flex-shrink: 0;
+}
+
+/* Header */
 .quiz-header {
   text-align: center;
   margin-bottom: 2rem;
@@ -33,6 +49,7 @@
   font-size: 1.5rem;
 }
 
+/* Progress bar */
 .progress-bar {
   width: 100%;
   height: 8px;
@@ -48,6 +65,7 @@
   transition: width 0.3s ease;
 }
 
+/* Question card */
 .question-card {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
@@ -63,6 +81,7 @@
   text-align: center;
 }
 
+/* Answers */
 .answers-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -81,7 +100,7 @@
   transition: all 0.3s ease;
 }
 
-.answer-btn:hover {
+.answer-btn:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.2);
   border-color: #667eea;
   transform: translateY(-2px);
@@ -92,6 +111,82 @@
   border-color: #764ba2;
 }
 
+.answer-btn.correct {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+  border-color: #16a34a !important;
+  color: white !important;
+  animation: correctPulse 0.5s ease;
+}
+
+.answer-btn.wrong {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  border-color: #dc2626 !important;
+  color: white !important;
+  animation: wrongShake 0.5s ease;
+}
+
+.answer-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.9;
+}
+
+@keyframes correctPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes wrongShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+/* Vysvetlenie */
+.explanation-section {
+  margin: 1.5rem 0;
+  text-align: center;
+}
+
+.btn-explanation {
+  padding: 0.8rem 1.5rem;
+  background: rgba(234, 179, 8, 0.2);
+  border: 2px solid #eab308;
+  border-radius: 12px;
+  color: #fde047;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-explanation:hover {
+  background: rgba(234, 179, 8, 0.3);
+  transform: translateY(-2px);
+}
+
+.explanation-box {
+  margin-top: 1rem;
+  padding: 1.5rem;
+  background: rgba(234, 179, 8, 0.1);
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  border-radius: 12px;
+  text-align: left;
+}
+
+.explanation-header {
+  font-weight: 700;
+  color: #fde047;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.explanation-box p {
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Buttons */
 .btn-next {
   width: 100%;
   padding: 1rem 2rem;
@@ -115,6 +210,7 @@
   cursor: not-allowed;
 }
 
+/* Results */
 .results-card {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
@@ -163,6 +259,7 @@
   justify-content: center;
   gap: 1rem;
   margin-top: 2rem;
+  flex-wrap: wrap;
 }
 
 .btn {
@@ -194,102 +291,18 @@
 .btn-secondary:hover {
   background: rgba(255, 255, 255, 0.2);
 }
-/* Správna odpoveď - zelená */
-.answer-btn.correct {
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
-  border-color: #16a34a !important;
-  animation: correctPulse 0.5s ease;
-}
 
-/* Nesprávna odpoveď - červená */
-.answer-btn.wrong {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
-  border-color: #dc2626 !important;
-  animation: wrongShake 0.5s ease;
-}
-
-/* Animácia pre správnu odpoveď */
-@keyframes correctPulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-}
-
-/* Animácia pre nesprávnu odpoveď */
-@keyframes wrongShake {
-  0%, 100% {
-    transform: translateX(0);
-  }
-  25% {
-    transform: translateX(-10px);
-  }
-  75% {
-    transform: translateX(10px);
-  }
-}
-
-/* Disabled stav počas zobrazenia výsledku */
-.answer-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.9;
-}
-/* Pridaj na KONIEC tvojho existujúceho quiz.component.css */
-
-/* Správna odpoveď - zelená */
-.answer-btn.correct {
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
-  border-color: #16a34a !important;
-  color: white !important;
-  animation: correctPulse 0.5s ease;
-}
-
-/* Nesprávna odpoveď - červená */
-.answer-btn.wrong {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
-  border-color: #dc2626 !important;
-  color: white !important;
-  animation: wrongShake 0.5s ease;
-}
-
-/* Animácia pre správnu odpoveď */
-@keyframes correctPulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-}
-
-/* Animácia pre nesprávnu odpoveď */
-@keyframes wrongShake {
-  0%, 100% {
-    transform: translateX(0);
-  }
-  25% {
-    transform: translateX(-10px);
-  }
-  75% {
-    transform: translateX(10px);
-  }
-}
-
-/* Disabled stav počas zobrazenia výsledku */
-.answer-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.9;
-}
-
-/* Uistíme sa že text je vždy viditeľný */
-.answer-btn {
+.btn-tertiary {
+  background: rgba(255, 255, 255, 0.1);
   color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
 }
-/* Pridaj na KONIEC tvojho quiz.component.css */
 
-/* Výber kategórie */
+.btn-tertiary:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Category selection */
 .category-selection {
   max-width: 1200px;
   margin: 0 auto;
@@ -345,58 +358,52 @@
   line-height: 1.5;
 }
 
-/* Správna odpoveď - zelená */
-.answer-btn.correct {
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
-  border-color: #16a34a !important;
-  color: white !important;
-  animation: correctPulse 0.5s ease;
-}
-
-/* Nesprávna odpoveď - červená */
-.answer-btn.wrong {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
-  border-color: #dc2626 !important;
-  color: white !important;
-  animation: wrongShake 0.5s ease;
-}
-
-/* Animácia pre správnu odpoveď */
-@keyframes correctPulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-}
-
-/* Animácia pre nesprávnu odpoveď */
-@keyframes wrongShake {
-  0%, 100% {
-    transform: translateX(0);
-  }
-  25% {
-    transform: translateX(-10px);
-  }
-  75% {
-    transform: translateX(10px);
-  }
-}
-
-/* Disabled stav */
-.answer-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.9;
-}
-
-/* Text v tlačidlách */
-.answer-btn {
+/* Loading & Error */
+.loading, .error-message {
+  text-align: center;
+  padding: 3rem;
   color: white;
+  font-size: 1.2rem;
 }
 
-/* Tretie tlačidlo */
-.btn-tertiary {
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px solid rgba(255, 255, 255, 0.3);
+.error-message {
+  color: #ef4444;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .quiz-wrapper {
+    flex-direction: column;
+  }
+  
+  .calculator-sidebar {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 100;
+  }
+}
+
+@media (max-width: 768px) {
+  .quiz-header h1 {
+    font-size: 1.8rem;
+  }
+  
+  .quiz-info {
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  
+  .answers-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .results-stats {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .results-actions {
+    flex-direction: column;
+  }
 }

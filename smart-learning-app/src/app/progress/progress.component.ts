@@ -22,7 +22,6 @@ import {
   RadarController
 } from 'chart.js';
 
-// KRITICKÉ: Registruj VŠETKY potrebné Chart.js komponenty
 Chart.register(
   CategoryScale,
   LinearScale,
@@ -178,11 +177,12 @@ export class ProgressComponent implements OnInit, AfterViewInit, OnDestroy {
           label: 'Úspešnosť (%)',
           data: recentTests.map(r => r.percentage),
           borderColor: 'rgb(139, 92, 246)',
-          backgroundColor: 'rgba(139, 92, 246, 0.1)',
+          backgroundColor: 'rgba(139, 92, 246, 0.2)',
           tension: 0.4,
           fill: true,
-          pointRadius: 5,
-          pointHoverRadius: 7
+          pointRadius: 6,
+          pointHoverRadius: 9,
+          borderWidth: 3
         }]
       },
       options: {
@@ -194,18 +194,27 @@ export class ProgressComponent implements OnInit, AfterViewInit, OnDestroy {
             display: true,
             text: 'Tvoj progres v čase',
             color: '#fff',
-            font: { size: 18, weight: 'bold' }
+            font: { size: 22, weight: 'bold' },
+            padding: { top: 10, bottom: 20 }
           }
         },
         scales: {
           y: {
             beginAtZero: true,
             max: 100,
-            ticks: { color: 'rgba(255, 255, 255, 0.7)' },
-            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+            ticks: { 
+              color: 'rgba(255, 255, 255, 0.9)',
+              font: { size: 16, weight: '500' }
+            },
+            grid: { 
+              color: 'rgba(255, 255, 255, 0.15)'
+            }
           },
           x: {
-            ticks: { color: 'rgba(255, 255, 255, 0.7)' },
+            ticks: { 
+              color: 'rgba(255, 255, 255, 0.9)',
+              font: { size: 14, weight: '500' }
+            },
             grid: { display: false }
           }
         }
@@ -256,7 +265,7 @@ export class ProgressComponent implements OnInit, AfterViewInit, OnDestroy {
           data: averages,
           backgroundColor: colors.slice(0, categories.length),
           borderWidth: 2,
-          borderRadius: 8
+          borderRadius: 10
         }]
       },
       options: {
@@ -268,18 +277,27 @@ export class ProgressComponent implements OnInit, AfterViewInit, OnDestroy {
             display: true,
             text: 'Úspešnosť podľa kategórií',
             color: '#fff',
-            font: { size: 18, weight: 'bold' }
+            font: { size: 22, weight: 'bold' },
+            padding: { top: 10, bottom: 20 }
           }
         },
         scales: {
           y: {
             beginAtZero: true,
             max: 100,
-            ticks: { color: 'rgba(255, 255, 255, 0.7)' },
-            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+            ticks: { 
+              color: 'rgba(255, 255, 255, 0.9)',
+              font: { size: 16, weight: '500' }
+            },
+            grid: { 
+              color: 'rgba(255, 255, 255, 0.15)'
+            }
           },
           x: {
-            ticks: { color: 'rgba(255, 255, 255, 0.7)' },
+            ticks: { 
+              color: 'rgba(255, 255, 255, 0.9)',
+              font: { size: 14, weight: '500' }
+            },
             grid: { display: false }
           }
         }
@@ -290,80 +308,130 @@ export class ProgressComponent implements OnInit, AfterViewInit, OnDestroy {
     console.log('Category chart created');
   }
 
-  createTopicsChart() {
-    if (!this.topicsChartRef?.nativeElement) {
-      console.log('Topics chart ref not found');
-      return;
-    }
-    
-    const ctx = this.topicsChartRef.nativeElement.getContext('2d');
-    if (!ctx) return;
+ createTopicsChart() {
+  if (!this.topicsChartRef?.nativeElement) {
+    console.log('Topics chart ref not found');
+    return;
+  }
+  
+  const ctx = this.topicsChartRef.nativeElement.getContext('2d');
+  if (!ctx) return;
 
-    const topicMap = new Map<string, { correct: number; total: number }>();
+  const topicMap = new Map<string, { correct: number; total: number }>();
 
-    this.testResults.forEach(result => {
-      result.topics.forEach(topic => {
-        if (!topicMap.has(topic)) {
-          topicMap.set(topic, { correct: 0, total: 0 });
-        }
-        const stats = topicMap.get(topic)!;
-        stats.total += result.totalQuestions;
-        stats.correct += result.correctAnswers;
-      });
-    });
-
-    const topics = Array.from(topicMap.keys()).slice(0, 8);
-    const percentages = topics.map(topic => {
+  this.testResults.forEach(result => {
+    result.topics.forEach(topic => {
+      if (!topicMap.has(topic)) {
+        topicMap.set(topic, { correct: 0, total: 0 });
+      }
       const stats = topicMap.get(topic)!;
-      return Math.round((stats.correct / stats.total) * 100);
+      stats.total += result.totalQuestions;
+      stats.correct += result.correctAnswers;
     });
+  });
 
-    const config: ChartConfiguration<'radar'> = {
-      type: 'radar',
-      data: {
-        labels: topics,
-        datasets: [{
-          label: 'Úspešnosť (%)',
-          data: percentages,
-          backgroundColor: 'rgba(139, 92, 246, 0.2)',
-          borderColor: 'rgb(139, 92, 246)',
-          pointBackgroundColor: 'rgb(139, 92, 246)',
-          pointBorderColor: '#fff',
-          pointHoverBackgroundColor: '#fff',
-          pointHoverBorderColor: 'rgb(139, 92, 246)'
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          title: {
-            display: true,
-            text: 'Silné a slabé stránky',
+  const topicStats = Array.from(topicMap.entries())
+    .map(([topic, stats]) => ({
+      topic,
+      percentage: Math.round((stats.correct / stats.total) * 100)
+    }))
+    .sort((a, b) => a.percentage - b.percentage)
+    .slice(0, 10);
+
+  const topics = topicStats.map(t => t.topic);
+  const percentages = topicStats.map(t => t.percentage);
+
+  const backgroundColors = percentages.map(p => {
+    if (p >= 80) return 'rgba(34, 197, 94, 0.8)';
+    if (p >= 60) return 'rgba(251, 146, 60, 0.8)';
+    return 'rgba(239, 68, 68, 0.8)';
+  });
+
+  const config: ChartConfiguration<'bar'> = {
+    type: 'bar',
+    data: {
+      labels: topics,
+      datasets: [{
+        label: 'Úspešnosť (%)',
+        data: percentages,
+        backgroundColor: backgroundColors,
+        borderWidth: 0,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { 
+          display: true,
+          position: 'bottom',
+          labels: {
             color: '#fff',
-            font: { size: 18, weight: 'bold' }
+            font: { size: 14, weight: '500' },
+            padding: 15,
+            generateLabels: function() {
+              return [
+                {
+                  text: '🟢 Dobré (80%+)',
+                  fillStyle: 'rgba(34, 197, 94, 0.8)',
+                  hidden: false,
+                  index: 0
+                },
+                {
+                  text: '🟠 OK (60-79%)',
+                  fillStyle: 'rgba(251, 146, 60, 0.8)',
+                  hidden: false,
+                  index: 1
+                },
+                {
+                  text: '🔴 Slabé (<60%)',
+                  fillStyle: 'rgba(239, 68, 68, 0.8)',
+                  hidden: false,
+                  index: 2
+                }
+              ];
+            }
           }
         },
-        scales: {
-          r: {
-            beginAtZero: true,
-            max: 100,
-            ticks: { 
-              color: '#fff',
-              backdropColor: 'transparent'
-            },
-            grid: { color: 'rgba(255, 255, 255, 0.1)' },
-            pointLabels: { color: '#fff' }
+        title: {
+          display: true,
+          text: 'Silné a slabé stránky podľa tém',
+          color: '#fff',
+          font: { size: 22, weight: 'bold' },
+          padding: { top: 10, bottom: 20 }
+        }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          max: 100,
+          ticks: { 
+            color: 'rgba(255, 255, 255, 0.9)',
+            font: { size: 14, weight: '500' },
+            callback: function(value) {
+              return value + '%';
+            }
+          },
+          grid: { 
+            color: 'rgba(255, 255, 255, 0.15)'
           }
+        },
+        y: {
+          ticks: { 
+            color: 'rgba(255, 255, 255, 0.9)',
+            font: { size: 13, weight: '500' }
+          },
+          grid: { display: false }
         }
       }
-    };
+    }
+  };
 
-    this.topicsChart = new Chart(ctx, config);
-    console.log('Topics chart created');
-  }
-
+  this.topicsChart = new Chart(ctx, config);
+  console.log('Topics chart created');
+}
   updateCharts() {
     if (this.testResults.length === 0) return;
     

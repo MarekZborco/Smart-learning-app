@@ -30,6 +30,51 @@ export interface Question {
   topic: string;
   difficulty: 'easy' | 'medium' | 'hard';
   points: number;
+  explanation?: string;  // NOVÉ - vysvetlenie
+}
+
+export interface MaterialSection {
+  id: string;
+  title: string;
+  order: number;
+  theory: string;
+  formulas: string[];
+  examples: MaterialExample[];
+  exercises: MaterialExercise[];
+}
+
+export interface MaterialExample {
+  number: string;
+  problem: string;
+  solution: SolutionStep[];
+  answer: string;
+}
+
+export interface SolutionStep {
+  step: number;
+  text: string;
+}
+
+export interface MaterialExercise {
+  number: string;
+  text: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  solution?: SolutionStep[];  // PRIDANÉ - opcionálne riešenie
+  answer?: string;            // PRIDANÉ - opcionálna odpoveď
+}
+
+export interface MaterialVideo {
+  title: string;
+  videoId: string;
+  thumbnail: string;
+  description: string;
+}
+
+export interface CategoryMaterials {
+  categoryId: string;
+  categoryName: string;
+  sections: MaterialSection[];
+  videos: MaterialVideo[];
 }
 
 @Injectable({
@@ -37,17 +82,14 @@ export interface Question {
 })
 export class FirebaseService {
 
-  /**
-   * Získa všetky kategórie z kolekcie 'categories'
-   */
   getCategories(): Observable<Category[]> {
     const categoriesRef = collection(db, 'categories');
     return from(getDocs(categoriesRef)).pipe(
       map(snapshot => {
-        console.log('Načítané kategórie:', snapshot.docs.length);
+        console.log('Nacitane kategorie:', snapshot.docs.length);
         return snapshot.docs.map(doc => {
           const data = doc.data();
-          console.log('Kategória:', doc.id, data);
+          console.log('Kategoria:', doc.id, data);
           return {
             id: doc.id,
             name: data['name'] || doc.id,
@@ -59,9 +101,6 @@ export class FirebaseService {
     );
   }
 
-  /**
-   * Získa detail kategórie
-   */
   getCategory(categoryId: string): Observable<Category | null> {
     const categoryRef = doc(db, 'categories', categoryId);
     return from(getDoc(categoryRef)).pipe(
@@ -80,37 +119,30 @@ export class FirebaseService {
     );
   }
 
-  /**
-   * Získa otázky pre danú kategóriu
-   * Podľa tvojej Firebase štruktúry: categories/{categoryId}/questions
-   */
   getQuestions(categoryId: string): Observable<Question[]> {
-    const questionsRef = collection(db, `categories/${categoryId}/questions`);
-    return from(getDocs(questionsRef)).pipe(
-      map(snapshot => {
-        console.log(`Načítané otázky pre ${categoryId}:`, snapshot.docs.length);
-        return snapshot.docs.map(doc => {
-          const data = doc.data();
-          console.log('Otázka data:', doc.id, data);
-          
-          // Mapovanie dát z Firebase do Question interface
-          return {
-            id: doc.id,
-            question: data['question'] || data['name'] || 'Otázka nenájdená',
-            answers: data['answers'] || ['A', 'B', 'C', 'D'], // Default odpovede
-            correctAnswer: data['correctAnswer'] ?? 0, // Default 0
-            topic: data['topic'] || categoryId,
-            difficulty: data['difficulty'] || 'medium',
-            points: data['points'] ?? 10 // Default 10 bodov
-          } as Question;
-        });
-      })
-    );
-  }
+  const questionsRef = collection(db, `categories/${categoryId}/questions`);
+  return from(getDocs(questionsRef)).pipe(
+    map(snapshot => {
+      console.log(`Nacitane otazky pre ${categoryId}:`, snapshot.docs.length);
+      return snapshot.docs.map(doc => {
+        const data = doc.data();
+        console.log('Otazka data:', doc.id, data);
+        
+        return {
+          id: doc.id,
+          question: data['question'] || data['name'] || 'Otazka nenajdena',
+          answers: data['answers'] || ['A', 'B', 'C', 'D'],
+          correctAnswer: data['correctAnswer'] ?? 0,
+          topic: data['topic'] || categoryId,
+          difficulty: data['difficulty'] || 'medium',
+          points: data['points'] ?? 10,
+          explanation: data['explanation'] || ''  // NOVÉ
+        } as Question;
+      });
+    })
+  );
+}
 
-  /**
-   * Získa konkrétnu otázku
-   */
   getQuestion(categoryId: string, questionId: string): Observable<Question | null> {
     const questionRef = doc(db, `categories/${categoryId}/questions`, questionId);
     return from(getDoc(questionRef)).pipe(
@@ -119,7 +151,7 @@ export class FirebaseService {
           const data = docSnap.data();
           return {
             id: docSnap.id,
-            question: data['question'] || data['name'] || 'Otázka nenájdená',
+            question: data['question'] || data['name'] || 'Otazka nenajdena',
             answers: data['answers'] || ['A', 'B', 'C', 'D'],
             correctAnswer: data['correctAnswer'] ?? 0,
             topic: data['topic'] || categoryId,
@@ -132,13 +164,28 @@ export class FirebaseService {
     );
   }
 
-  /**
-   * Pomocná metóda pre testovanie pripojenia
-   */
+  getMaterials(categoryId: string): Observable<CategoryMaterials | null> {
+    const materialsRef = doc(db, 'materials', categoryId);
+    return from(getDoc(materialsRef)).pipe(
+      map(docSnap => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          return {
+            categoryId: categoryId,
+            categoryName: data['categoryName'] || categoryId,
+            sections: data['sections'] || [],
+            videos: data['videos'] || []
+          } as CategoryMaterials;
+        }
+        return null;
+      })
+    );
+  }
+
   testConnection(): Observable<boolean> {
     return this.getCategories().pipe(
       map(categories => {
-        console.log('Test pripojenia úspešný, kategórie:', categories.length);
+        console.log('Test pripojenia uspesny, kategorie:', categories.length);
         return true;
       })
     );

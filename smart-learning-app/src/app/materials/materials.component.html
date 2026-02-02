@@ -1,76 +1,146 @@
-<div class="materials-container">
-  <div class="materials-header">
-    <h1>Študijné materiály</h1>
-    <p>Vyber si kategóriu a štúduj materiály k danej téme</p>
+<div class="materials-wrapper">
+  <!-- Kalkulačka hore vpravo (fixed) -->
+  <div class="calculator-fixed">
+    <app-calculator></app-calculator>
   </div>
 
-  <!-- Výber kategórie -->
-  <div class="categories-tabs">
-    <button 
-      class="category-tab"
-      [class.active]="selectedCategory() === 'kombinatorika'"
-      (click)="selectCategory('kombinatorika')">
-      🔢 Kombinatorika
-    </button>
-    <button 
-      class="category-tab"
-      [class.active]="selectedCategory() === 'pravdepodobnost'"
-      (click)="selectCategory('pravdepodobnost')">
-      🎲 Pravdepodobnosť
-    </button>
-    <button 
-      class="category-tab"
-      [class.active]="selectedCategory() === 'statistika'"
-      (click)="selectCategory('statistika')">
-      📊 Štatistika
-    </button>
-    <button 
-      class="category-tab"
-      [class.active]="selectedCategory() === 'postupnosti'"
-      (click)="selectCategory('postupnosti')">
-      📈 Postupnosti
-    </button>
-  </div>
-
-  <!-- Materiály pre zvolenú kategóriu -->
-  <div class="materials-content">
-    <div class="section">
-      <h2>📹 Video materiály</h2>
-      <div class="materials-grid">
-        <div class="material-card video" *ngFor="let video of getMaterialsForCategory(selectedCategory()).videos">
-          <div class="material-icon">📺</div>
-          <h3>{{video.title}}</h3>
-          <p>{{video.description}}</p>
-          <a [href]="video.url" target="_blank" class="btn">
-            Pozrieť video
-          </a>
-        </div>
-      </div>
+  <div class="materials-container">
+    <div class="materials-header">
+      <h1>📚 Študijné materiály</h1>
+      <p>Vyber si kategóriu a štúduj teóriu, príklady a videá</p>
     </div>
 
-    <div class="section">
-      <h2>📝 Cvičenia a príklady</h2>
-      <div class="exercises-list">
-        <div class="exercise-item" *ngFor="let exercise of getMaterialsForCategory(selectedCategory()).exercises">
-          <span class="exercise-number">{{exercise.number}}</span>
-          <span class="exercise-text">{{exercise.text}}</span>
-          <span class="exercise-difficulty" [ngClass]="exercise.difficulty">
-            {{exercise.difficulty === 'easy' ? 'Ľahké' : exercise.difficulty === 'medium' ? 'Stredné' : 'Ťažké'}}
-          </span>
-        </div>
-      </div>
+    <!-- Výber kategórie -->
+    <div class="categories-tabs">
+      <button 
+        class="category-tab"
+        [class.active]="selectedCategory() === 'kombinatorika'"
+        (click)="selectCategory('kombinatorika')">
+        <span class="tab-icon">🔢</span>
+        <span class="tab-text">Kombinatorika</span>
+      </button>
+      <button 
+        class="category-tab"
+        [class.active]="selectedCategory() === 'pravdepodobnost'"
+        (click)="selectCategory('pravdepodobnost')">
+        <span class="tab-icon">🎲</span>
+        <span class="tab-text">Pravdepodobnosť</span>
+      </button>
+      <button 
+        class="category-tab"
+        [class.active]="selectedCategory() === 'statistika'"
+        (click)="selectCategory('statistika')">
+        <span class="tab-icon">📊</span>
+        <span class="tab-text">Štatistika</span>
+      </button>
+      <button 
+        class="category-tab"
+        [class.active]="selectedCategory() === 'postupnosti'"
+        (click)="selectCategory('postupnosti')">
+        <span class="tab-icon">📈</span>
+        <span class="tab-text">Postupnosti</span>
+      </button>
     </div>
 
-    <div class="section">
-      <h2>📚 Teoretické pojmy</h2>
-      <div class="theory-cards">
-        <div class="theory-card" *ngFor="let theory of getMaterialsForCategory(selectedCategory()).theory">
-          <h3>{{theory.title}}</h3>
-          <p>{{theory.content}}</p>
-          <div class="formula">{{theory.formula}}</div>
-          <p class="note" *ngIf="theory.note">{{theory.note}}</p>
+    <!-- Loading -->
+    <div class="loading" *ngIf="loading()">
+      <p>⏳ Načítavam materiály...</p>
+    </div>
+
+    <!-- Error -->
+    <div class="error" *ngIf="error()">
+      <p>❌ {{error()}}</p>
+    </div>
+
+    <!-- Materiály pre zvolenú kategóriu -->
+    <div class="materials-content" *ngIf="!loading() && !error() && materials()">
+      
+      <!-- Tabs pre sekcie -->
+      <div class="sections-tabs" *ngIf="getSections().length > 0">
+        <button 
+          *ngFor="let section of getSections()"
+          class="section-tab"
+          [class.active]="selectedSectionId() === section.id"
+          (click)="selectSection(section.id)">
+          <span class="section-tab-id">{{section.id}}</span>
+          <span class="section-tab-title">{{section.title}}</span>
+        </button>
+      </div>
+
+      <!-- Zobraz len vybranú sekciu -->
+      <div class="section" *ngIf="currentSection()">
+        <h2 class="section-title">
+          <span class="section-icon">📖</span>
+          {{currentSection()!.title}}
+        </h2>
+        
+        <!-- Teória -->
+        <div class="theory-box">
+          <p class="theory-text">{{currentSection()!.theory}}</p>
+        </div>
+
+        <!-- Vzorce -->
+        <div class="formulas-box" *ngIf="currentSection()!.formulas && currentSection()!.formulas.length > 0">
+          <h3>📐 Vzorce</h3>
+          <div class="formula-item" *ngFor="let formula of currentSection()!.formulas">
+            {{formula}}
+          </div>
+        </div>
+
+        <!-- Príklady -->
+        <div class="examples-section" *ngIf="currentSection()!.examples && currentSection()!.examples.length > 0">
+          <h3>💡 Vzorové príklady</h3>
+          <div class="example-card" *ngFor="let example of currentSection()!.examples">
+            <div class="example-header">
+              <strong>{{example.number}}</strong>
+            </div>
+            <div class="example-problem">
+              <strong>Zadanie:</strong> {{example.problem}}
+            </div>
+            <div class="example-solution" *ngIf="example.solution && example.solution.length > 0">
+              <strong>Riešenie:</strong>
+              <ol>
+                <li *ngFor="let step of example.solution">{{step.text}}</li>
+              </ol>
+            </div>
+            <div class="example-answer">
+              <strong>Odpoveď:</strong> {{example.answer}}
+            </div>
+          </div>
+        </div>
+
+        <!-- Cvičenia -->
+        <div class="exercises-section" *ngIf="currentSection()!.exercises && currentSection()!.exercises.length > 0">
+          <h3>✏️ Príklady na precvičenie</h3>
+          <div class="exercise-item" *ngFor="let exercise of currentSection()!.exercises">
+            <div class="exercise-header">
+              <span class="exercise-number">{{exercise.number}}</span>
+              <span class="exercise-text">{{exercise.text}}</span>
+              <span class="difficulty-badge" [ngClass]="'difficulty-' + exercise.difficulty">
+                {{exercise.difficulty === 'easy' ? '🟢 Ľahké' : exercise.difficulty === 'medium' ? '🟡 Stredné' : '🔴 Ťažké'}}
+              </span>
+            </div>
+            
+            <button 
+              class="btn-show-solution" 
+              (click)="toggleExerciseSolution(currentSection()!.id, exercise.number)"
+              *ngIf="exercise.solution && exercise.solution.length > 0">
+              {{ isSolutionVisible(currentSection()!.id, exercise.number) ? '🙈 Skryť riešenie' : '💡 Zobraziť riešenie' }}
+            </button>
+            
+            <div class="exercise-solution" *ngIf="isSolutionVisible(currentSection()!.id, exercise.number) && exercise.solution">
+              <div class="solution-steps">
+                <div class="solution-step" *ngFor="let step of exercise.solution">
+                  <span class="step-number">{{step.step}}.</span>
+                  <span class="step-text">{{step.text}}</span>
+                </div>
+              </div>
+              <div class="solution-answer" *ngIf="exercise.answer">
+                <strong>Odpoveď:</strong> {{exercise.answer}}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
-</div>
+
+  

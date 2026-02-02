@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { UserService } from '../services/user.service';
 import { FirebaseService, Question } from '../services/firebase.service';
+import { CalculatorComponent } from '../calculator/calculator.component';
 
 @Component({
   selector: 'app-quiz',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, CalculatorComponent],
   templateUrl: './quiz.component.html',
   styleUrl: './quiz.component.css'
 })
@@ -21,7 +22,7 @@ export class QuizComponent implements OnInit {
   score = 0;
   correctAnswers = 0;
   quizFinished = false;
-  quizStarted = false; // NOVÉ
+  quizStarted = false;
   timeRemaining = 300;
   loading = false;
   error = signal<string | null>(null);
@@ -30,19 +31,18 @@ export class QuizComponent implements OnInit {
   showingResult = false;
   isCorrect = false;
   correctAnswerIndex: number | null = null;
+  showExplanation = false;  // NOVÉ
 
   ngOnInit() {
     // Nespúšťame automaticky, čakáme na výber kategórie
   }
 
-  // NOVÉ: Výber kategórie
   selectCategory(category: string) {
     this.selectedCategory = category;
     this.quizStarted = true;
     this.loadQuestions();
   }
 
-  // NOVÉ: Späť na výber kategórií
   backToCategories() {
     this.quizStarted = false;
     this.quizFinished = false;
@@ -51,10 +51,10 @@ export class QuizComponent implements OnInit {
     this.score = 0;
     this.correctAnswers = 0;
     this.showingResult = false;
+    this.showExplanation = false;
     this.questions.set([]);
   }
 
-  // NOVÉ: Meno kategórie
   getCategoryName(): string {
     const names: { [key: string]: string } = {
       'kombinatorika': 'Kombinatorika',
@@ -71,13 +71,20 @@ export class QuizComponent implements OnInit {
     
     this.firebaseService.getQuestions(this.selectedCategory).subscribe({
       next: (questions) => {
-        console.log('Načítané otázky:', questions);
+        console.log('Načítané otázky:', questions.length);
         
         if (questions.length === 0) {
           this.error.set('Žiadne otázky pre túto kategóriu');
+          this.loading = false;
+          return;
         }
         
-        this.questions.set(questions);
+        // Zamiešaj a vyber náhodných 5 otázok
+        const shuffled = this.shuffleArray([...questions]);
+        const selected = shuffled.slice(0, 5);
+        
+        console.log('Vybraných otázok:', selected.length);
+        this.questions.set(selected);
         this.loading = false;
       },
       error: (error) => {
@@ -86,6 +93,20 @@ export class QuizComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  // Metóda na zamiešanie poľa (Fisher-Yates shuffle)
+  private shuffleArray<T>(array: T[]): T[] {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  // NOVÉ - toggle vysvetlenia
+  toggleExplanation(): void {
+    this.showExplanation = !this.showExplanation;
   }
 
   get currentQ(): Question | undefined {
@@ -141,9 +162,13 @@ export class QuizComponent implements OnInit {
 
     this.showingResult = true;
 
-    setTimeout(() => {
-      this.moveToNextQuestion();
-    }, 1500);
+    // Ak je správna, automaticky pokračuj po 1.5s
+    // Ak je zlá, čakaj na kliknutie (aby si mohol pozrieť vysvetlenie)
+    if (this.isCorrect) {
+      setTimeout(() => {
+        this.moveToNextQuestion();
+      }, 1500);
+    }
   }
 
   private moveToNextQuestion(): void {
@@ -155,6 +180,7 @@ export class QuizComponent implements OnInit {
       this.showingResult = false;
       this.isCorrect = false;
       this.correctAnswerIndex = null;
+      this.showExplanation = false;  // Reset vysvetlenia
     } else {
       this.finishQuiz();
     }
@@ -211,6 +237,7 @@ export class QuizComponent implements OnInit {
     this.showingResult = false;
     this.isCorrect = false;
     this.correctAnswerIndex = null;
+    this.showExplanation = false;
     this.loadQuestions();
   }
 }
