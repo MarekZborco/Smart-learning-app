@@ -2,25 +2,26 @@
   <div class="quiz-container">
     <!-- Výber kategórie -->
     <div class="category-selection" *ngIf="!quizStarted">
-      <h1>Vyber si kategóriu a štúduj materiály k danej téme</h1>
+      <h1>Otestuj sa a zisti, kde potrebuješ zabrať</h1>
+      <p class="category-subtitle">Vyber si kategóriu a over svoje vedomosti</p>
       
       <div class="categories-grid">
         <button class="category-btn" (click)="selectCategory('kombinatorika')">
           <span class="category-icon">🔢</span>
           <h3>Kombinatorika</h3>
-          <p>Variácie, permutácie, kombinácie</p>
+          <p>Faktoriály, variácie, permutácie a kombinácie</p>
         </button>
         
         <button class="category-btn" (click)="selectCategory('pravdepodobnost')">
           <span class="category-icon">🎲</span>
           <h3>Pravdepodobnosť</h3>
-          <p>Náhodné javy, pravdepodobnostné výpočty</p>
+          <p>Náhodné javy, nezávislé pokusy a Bernoulliho schéma</p>
         </button>
         
         <button class="category-btn" (click)="selectCategory('statistika')">
           <span class="category-icon">📊</span>
           <h3>Štatistika</h3>
-          <p>Priemer, medián, modus, rozptyl</p>
+          <p>Priemer, medián, modus, rozptyl a odchýlky</p>
         </button>
         
         <button class="category-btn" (click)="selectCategory('postupnosti')">
@@ -34,6 +35,9 @@
     <!-- Quiz -->
     <div *ngIf="quizStarted">
       <div class="quiz-header">
+        <button class="btn-back" (click)="backToCategories()">
+          ← Späť
+        </button>
         <h1>Matematika - {{getCategoryName()}}</h1>
         <div class="quiz-info">
           <div class="info-item">
@@ -41,13 +45,14 @@
             <span>Otázka {{currentQuestion + 1}}/{{questions().length}}</span>
           </div>
           <div class="info-item">
-            <span class="icon">⏱️</span>
-            <span>{{timeRemaining}}s</span>
-          </div>
-          <div class="info-item">
             <span class="icon">🎯</span>
             <span>{{score}} bodov</span>
           </div>
+          <!-- Toggle kalkulačky -->
+          <button class="calculator-toggle" (click)="toggleCalculator()">
+            <span class="icon">🧮</span>
+            <span>{{ showCalculator ? 'Skryť' : 'Kalkulačka' }}</span>
+          </button>
         </div>
       </div>
 
@@ -73,11 +78,11 @@
         <!-- Vysvetlenie po zlej odpovedi -->
         <div class="explanation-section" *ngIf="showingResult && !isCorrect">
           <button class="btn-explanation" (click)="toggleExplanation()">
-            {{ showExplanation ? '🙈 Skryť postup' : '💡 Ukázať postup' }}
+            {{ showExplanation ? 'Skryť postup' : 'Ukázať postup' }}
           </button>
           
           <div class="explanation-box" *ngIf="showExplanation && questions()[currentQuestion].explanation">
-            <div class="explanation-header">📝 Postup riešenia:</div>
+            <div class="explanation-header">Postup riešenia:</div>
             <p>{{ questions()[currentQuestion].explanation }}</p>
           </div>
         </div>
@@ -89,21 +94,29 @@
 
       <!-- Loading -->
       <div class="loading" *ngIf="loading">
+        <div class="loading-spinner"></div>
         <p>Načítavam otázky...</p>
       </div>
 
       <!-- Error -->
       <div class="error-message" *ngIf="error()">
-        <p>❌ {{error()}}</p>
+        <p>{{error()}}</p>
+        <button class="btn btn-secondary" (click)="backToCategories()">Späť na výber</button>
       </div>
 
       <!-- Výsledky -->
       <div class="results-card" *ngIf="quizFinished">
-        <div class="results-icon">🎉</div>
-        <h2>Test dokončený!</h2>
+        <div class="results-icon" [ngClass]="{'good': percentage >= 70, 'bad': percentage < 70}">
+          {{ percentage >= 70 ? '🎉' : '📚' }}
+        </div>
+        <h2>{{ percentage >= 70 ? 'Výborne!' : 'Nevadí, skús to znova!' }}</h2>
+        <p class="results-message" *ngIf="percentage < 70">
+          Odporúčame ti preštudovať materiály a skúsiť test znova.
+        </p>
+        
         <div class="results-stats">
           <div class="stat">
-            <div class="stat-value">{{score}}/{{questions().length * 10}}</div>
+            <div class="stat-value">{{score}}</div>
             <div class="stat-label">Bodov</div>
           </div>
           <div class="stat">
@@ -111,7 +124,7 @@
             <div class="stat-label">Správne</div>
           </div>
           <div class="stat">
-            <div class="stat-value">{{percentage}}%</div>
+            <div class="stat-value" [ngClass]="{'good': percentage >= 70, 'bad': percentage < 70}">{{percentage}}%</div>
             <div class="stat-label">Úspešnosť</div>
           </div>
         </div>
@@ -119,14 +132,14 @@
         <div class="results-actions">
           <button class="btn btn-primary" (click)="restartQuiz()">Skúsiť znova</button>
           <button class="btn btn-secondary" routerLink="/materials">Študovať materiály</button>
-          <button class="btn btn-tertiary" (click)="backToCategories()">Vybrať inú kategóriu</button>
+          <button class="btn btn-tertiary" (click)="backToCategories()">Iná kategória</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Kalkulačka vpravo -->
-  <div class="calculator-sidebar" *ngIf="quizStarted">
+  <!-- Kalkulačka vpravo - s toggle -->
+  <div class="calculator-sidebar" *ngIf="quizStarted && showCalculator">
     <app-calculator></app-calculator>
   </div>
 </div>

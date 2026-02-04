@@ -1,52 +1,136 @@
 <div class="home-container">
+  <!-- Hero Section -->
   <section class="hero">
     <div class="hero-content">
       <h1 class="hero-title">
-        Zlepši svoje <span class="gradient-text">vedomosti</span>
+        Zlepši sa v <br/>
+        <span class="gradient-text">matematike</span>
       </h1>
+      
       <p class="hero-subtitle">
-        Personalizované učenie prispôsobené tvojim potrebám. 
-        Testuj sa, uč sa a sleduj svoj progres.
+        Interaktívne testy s 3 úrovňami obtiažnostiami, kompletné študijné materiály 
+        a sledovanie tvojho progresu v reálnom čase.
       </p>
+      
       <div class="hero-buttons">
         <button class="btn btn-primary" routerLink="/quiz">
-          Začať učenie
+          <span class="btn-icon">🚀</span>
+          <span>Začať testovanie</span>
         </button>
         <button class="btn btn-secondary" routerLink="/materials">
-          Preskúmať materiály
+          <span class="btn-icon">📚</span>
+          <span>Študijné materiály</span>
         </button>
       </div>
     </div>
     
     <div class="hero-image">
-      <div class="floating-card card-1">📊 Sleduj progres</div>
-      <div class="floating-card card-2">🎯 Cielené učenie</div>
-      <div class="floating-card card-3">🏆 Získavaj XP</div>
+      <div class="hero-features-section">
+        <h2 class="hero-features-title">Prečo SmartLearningApp?</h2>
+        <div class="hero-features-grid">
+          <div class="hero-feature-box">
+            <div class="feature-box-icon">🎯</div>
+            <h3>Personalizované testy</h3>
+            <p>Testy prispôsobené tvojej úrovni. Systém ti vygeneruje otázky presne tam, kde potrebuješ zlepšenie.</p>
+          </div>
+          
+          <div class="hero-feature-box">
+            <div class="feature-box-icon">📚</div>
+            <h3>Kompletné materiály</h3>
+            <p>Pre každú tému: teória, vzorce, vzorový príklad riešený krok po kroku a cvičné príklady na precvičenie.</p>
+          </div>
+          
+          <div class="hero-feature-box">
+            <div class="feature-box-icon">🧮</div>
+            <h3>Kalkulačka</h3>
+            <p>Kalkulačka na kombinatorické výpočty, vzorce vždy po ruke a podrobné vysvetlenia riešení.</p>
+          </div>
+          
+          <div class="hero-feature-box">
+            <div class="feature-box-icon">📈</div>
+            <h3>Sleduj progres</h3>
+            <p>Detailné grafy a štatistiky tvojho zlepšenia. Vidíš presne v čom si silný a čo ešte potrebuješ precvičiť.</p>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
-  <section class="features">
-    <h2 class="section-title">Prečo SmartLearninApp?</h2>
-    <div class="features-grid">
-      <div class="feature-card">
-        <div class="feature-icon">🎯</div>
-        <h3>Personalizované testy</h3>
-        <p>Testy prispôsobené tvojej úrovni a slabinám</p>
+  <!-- Topics Section -->
+  <section class="topics">
+    <div class="section-header">
+      <span class="section-badge">Obsah</span>
+      <h2 class="section-title">Čo sa naučíš?</h2>
+      <p class="section-subtitle">Komplexný program pokrývajúci všetky témy</p>
+    </div>
+
+    <div class="topics-grid">
+      <div class="topic-card">
+        <div class="topic-header">
+          <div class="topic-icon">🔢</div>
+          <h3>Kombinatorika</h3>
+        </div>
+        <ul class="topic-list">
+          <li>Faktoriál</li>
+          <li>Permutácie</li>
+          <li>Variácie bez/s opakovaním</li>
+          <li>Kombinácie</li>
+          <li>Kombinačné čísla</li>
+        </ul>
+        <button class="topic-btn" routerLink="/materials" [queryParams]="{category: 'kombinatorika'}">
+          Prejsť na materiály →
+        </button>
       </div>
-      <div class="feature-card">
-        <div class="feature-icon">📚</div>
-        <h3>Študijné materiály</h3>
-        <p>Videá, články a kvízy na mieru</p>
+
+      <div class="topic-card">
+        <div class="topic-header">
+          <div class="topic-icon">🎲</div>
+          <h3>Pravdepodobnosť</h3>
+        </div>
+        <ul class="topic-list">
+          <li>Náhodný jav</li>
+          <li>Nezávislé javy</li>
+          <li>Podmienená pravdepodobnosť</li>
+          <li>Bernoulliho schéma</li>
+          <li>Zjednotenie javov</li>
+        </ul>
+        <button class="topic-btn" routerLink="/materials" [queryParams]="{category: 'pravdepodobnost'}">
+          Prejsť na materiály →
+        </button>
       </div>
-      <div class="feature-card">
-        <div class="feature-icon">📈</div>
-        <h3>Sleduj progres</h3>
-        <p>Grafy a štatistiky tvojho zlepšenia</p>
+
+      <div class="topic-card">
+        <div class="topic-header">
+          <div class="topic-icon">📊</div>
+          <h3>Štatistika</h3>
+        </div>
+        <ul class="topic-list">
+          <li>Aritmetický priemer</li>
+          <li>Medián a modus</li>
+          <li>Rozptyl a smerodajná odchýlka</li>
+          <li>Variačné rozpätie</li>
+          <li>Vážený priemer</li>
+        </ul>
+        <button class="topic-btn" routerLink="/materials" [queryParams]="{category: 'statistika'}">
+          Prejsť na materiály →
+        </button>
       </div>
-      <div class="feature-card">
-        <div class="feature-icon">🎮</div>
-        <h3>Gamifikácia</h3>
-        <p>XP, levely a vizualizácia avatara</p>
+
+      <div class="topic-card">
+        <div class="topic-header">
+          <div class="topic-icon">📈</div>
+          <h3>Postupnosti</h3>
+        </div>
+        <ul class="topic-list">
+          <li>Aritmetická postupnosť</li>
+          <li>Geometrická postupnosť</li>
+          <li>Súčet aritmetickej postupnosti</li>
+          <li>Súčet geometrickej postupnosti</li>
+          <li>Nekonečná geometrická postupnosť</li>
+        </ul>
+        <button class="topic-btn" routerLink="/materials" [queryParams]="{category: 'postupnosti'}">
+          Prejsť na materiály →
+        </button>
       </div>
     </div>
   </section>

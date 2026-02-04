@@ -1,82 +1,45 @@
 <div class="profile-container">
-  <div class="profile-header">
+  <!-- Profile Card -->
+  <div class="profile-card">
     <div class="profile-avatar">
-      <span class="avatar-icon">👤</span>
-      <div class="level-badge">{{userLevel}}</div>
+      <span>👤</span>
     </div>
-    <div class="profile-info">
-      <h1>{{userName}}</h1>
-      <p class="user-email">{{userEmail}}</p>
-      <div class="user-stats">
-        <div class="stat-item">
-          <span class="stat-icon">🔥</span>
-          <span>{{streak}} dní streak</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-icon">📅</span>
-          <span>Člen od {{joinedDate}}</span>
-        </div>
-      </div>
-    </div>
+    <h1 class="profile-name">{{ user()?.name || 'Používateľ' }}</h1>
+    <p class="profile-email">{{ user()?.email }}</p>
+    <p class="profile-joined">Člen od {{ user()?.joinedDate }}</p>
   </div>
 
-  <div class="xp-card">
-    <div class="xp-header">
-      <h2>Level {{userLevel}}</h2>
-      <span class="xp-text">{{currentXP}} / {{xpForNextLevel}} XP</span>
-    </div>
-    <div class="xp-bar">
-      <div class="xp-fill" [style.width.%]="xpPercentage"></div>
-    </div>
-    <p class="xp-info">Ešte {{xpForNextLevel - currentXP}} XP do ďalšieho levelu!</p>
-  </div>
-
+  <!-- Stats -->
   <div class="stats-grid">
     <div class="stat-card">
-      <div class="stat-icon-large">📝</div>
-      <div class="stat-number">{{totalTests}}</div>
-      <div class="stat-label">Testov dokončených</div>
+      <div class="stat-icon">📝</div>
+      <div class="stat-value">{{ stats().totalTests }}</div>
+      <div class="stat-label">Dokončených testov</div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon-large">🎯</div>
-      <div class="stat-number">{{averageScore}}%</div>
+      <div class="stat-icon">🎯</div>
+      <div class="stat-value">{{ stats().averageScore }}%</div>
       <div class="stat-label">Priemerná úspešnosť</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-icon-large">⭐</div>
-      <div class="stat-number">{{totalXP}}</div>
-      <div class="stat-label">Celkové XP</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon-large">📚</div>
-      <div class="stat-number">{{studyHours}}h</div>
-      <div class="stat-label">Hodín štúdia</div>
-    </div>
   </div>
 
-  <div class="achievements-section">
-    <h2>Odznaky</h2>
-    <div class="achievements-grid">
-      <div class="achievement-card" [class.unlocked]="achievement.unlocked" 
-           *ngFor="let achievement of achievements">
-        <div class="achievement-icon">{{achievement.icon}}</div>
-        <div class="achievement-name">{{achievement.name}}</div>
-        <div class="achievement-desc">{{achievement.description}}</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="recent-activity">
-    <h2>Posledná aktivita</h2>
-    <div class="activity-list">
-      <div class="activity-item" *ngFor="let activity of recentActivity">
-        <div class="activity-icon">{{activity.icon}}</div>
-        <div class="activity-content">
-          <div class="activity-title">{{activity.title}}</div>
-          <div class="activity-time">{{activity.time}}</div>
+  <!-- Recent Tests -->
+  <div class="recent-tests" *ngIf="testResults().length > 0">
+    <h2>Posledné testy</h2>
+    <div class="tests-list">
+      <div class="test-item" *ngFor="let test of testResults().slice(-5).reverse()">
+        <div class="test-info">
+          <span class="test-name">{{ test.subject }}</span>
+          <span class="test-date">{{ test.completedAt | date:'dd.MM.yyyy HH:mm' }}</span>
         </div>
-        <div class="activity-score">+{{activity.xp}} XP</div>
+        <div class="test-score" [class.good]="test.percentage >= 70" [class.bad]="test.percentage < 70">
+          {{ test.percentage }}%
+        </div>
       </div>
     </div>
+  </div>
+
+  <div class="no-tests" *ngIf="testResults().length === 0">
+    <p>Zatiaľ si nedokončil žiadny test.</p>
   </div>
 </div>

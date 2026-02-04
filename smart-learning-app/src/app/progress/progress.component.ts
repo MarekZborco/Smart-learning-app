@@ -2,7 +2,6 @@ import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, OnDestroy, eff
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { UserService, TestResult } from '../services/user.service';
-import { AuthService } from '../services/auth.service';
 import { 
   Chart, 
   ChartConfiguration,
@@ -56,12 +55,12 @@ interface TopicStats {
 })
 export class ProgressComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('progressChart') progressChartRef!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('categoryChart') categoryChartRef!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('topicsChart') topicsChartRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('strongChart') strongChartRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('weakChart') weakChartRef!: ElementRef<HTMLCanvasElement>;
 
   progressChart?: Chart;
-  categoryChart?: Chart;
-  topicsChart?: Chart;
+  strongChart?: Chart;
+  weakChart?: Chart;
 
   testResults: TestResult[] = [];
   
@@ -70,10 +69,47 @@ export class ProgressComponent implements OnInit, AfterViewInit, OnDestroy {
   recentImprovement = 0;
 
   userService = inject(UserService);
-  authService = inject(AuthService);
 
   stats = this.userService.stats;
-  user = this.authService.currentUser;
+
+  // Mapovanie tém na kategórie
+  topicCategoryMap: { [key: string]: string } = {
+    'Faktoriál': 'kombinatorika',
+    'Kombinatorické pravidlo súčinu': 'kombinatorika',
+    'Kombinatorické pravidlo súčtu': 'kombinatorika',
+    'Permutácie': 'kombinatorika',
+    'Variácie bez opakovania': 'kombinatorika',
+    'Variácie s opakovaním': 'kombinatorika',
+    'Kombinácie': 'kombinatorika',
+    'Kombinačné čísla': 'kombinatorika',
+    'Rovnice s faktoriálom': 'kombinatorika',
+    'Faktoriál prirodzeného čísla': 'kombinatorika',
+    'Pravdepodobnosť náhodného javu': 'pravdepodobnost',
+    'Náhodný jav': 'pravdepodobnost',
+    'Opačný jav': 'pravdepodobnost',
+    'Nezávislé javy': 'pravdepodobnost',
+    'Podmienená pravdepodobnosť': 'pravdepodobnost',
+    'Nezávislé pokusy': 'pravdepodobnost',
+    'Bernoulliho schéma': 'pravdepodobnost',
+    'Zjednotenie javov': 'pravdepodobnost',
+    'Aritmetický priemer': 'statistika',
+    'Medián': 'statistika',
+    'Modus': 'statistika',
+    'Variačné rozpätie': 'statistika',
+    'Relatívna početnosť': 'statistika',
+    'Rozptyl': 'statistika',
+    'Rozptyl a smerodajná odchýlka': 'statistika',
+    'Vážený priemer': 'statistika',
+    'Variačný koeficient': 'statistika',
+    'Vlastnosti priemeru a rozptylu': 'statistika',
+    'Modus a medián': 'statistika',
+    'Pojem postupnosti': 'postupnosti',
+    'Aritmetická postupnosť': 'postupnosti',
+    'Geometrická postupnosť': 'postupnosti',
+    'Súčet AP': 'postupnosti',
+    'Súčet GP': 'postupnosti',
+    'Súčet nekonečnej GP': 'postupnosti'
+  };
 
   constructor() {
     effect(() => {
@@ -90,17 +126,18 @@ export class ProgressComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit() {
     this.testResults = this.userService.testResults();
     this.calculateTopicStats();
-    console.log('Test results:', this.testResults);
   }
 
   ngAfterViewInit() {
     setTimeout(() => {
       if (this.testResults.length > 0) {
         this.createCharts();
-      } else {
-        console.log('No test results yet - charts will not be created');
       }
     }, 100);
+  }
+
+  getCategoryForTopic(topic: string): string {
+    return this.topicCategoryMap[topic] || 'kombinatorika';
   }
 
   calculateTopicStats() {
@@ -131,7 +168,7 @@ export class ProgressComponent implements OnInit, AfterViewInit, OnDestroy {
     topicStats.sort((a, b) => a.percentage - b.percentage);
 
     this.weakTopics = topicStats.filter(t => t.percentage < 70).slice(0, 5);
-    this.strongTopics = topicStats.filter(t => t.percentage >= 80).slice(-5).reverse();
+    this.strongTopics = topicStats.filter(t => t.percentage >= 70).slice(-5).reverse();
 
     if (this.testResults.length >= 4) {
       const half = Math.floor(this.testResults.length / 2);
@@ -150,19 +187,15 @@ export class ProgressComponent implements OnInit, AfterViewInit, OnDestroy {
     
     try {
       this.createProgressChart();
-      this.createCategoryChart();
-      this.createTopicsChart();
-      console.log('Charts created successfully');
+      this.createStrongChart();
+      this.createWeakChart();
     } catch (error) {
       console.error('Error creating charts:', error);
     }
   }
 
   createProgressChart() {
-    if (!this.progressChartRef?.nativeElement) {
-      console.log('Progress chart ref not found');
-      return;
-    }
+    if (!this.progressChartRef?.nativeElement) return;
     
     const ctx = this.progressChartRef.nativeElement.getContext('2d');
     if (!ctx) return;
@@ -194,7 +227,7 @@ export class ProgressComponent implements OnInit, AfterViewInit, OnDestroy {
             display: true,
             text: 'Tvoj progres v čase',
             color: '#fff',
-            font: { size: 22, weight: 'bold' },
+            font: { size: 20, weight: 'bold' },
             padding: { top: 10, bottom: 20 }
           }
         },
@@ -203,17 +236,20 @@ export class ProgressComponent implements OnInit, AfterViewInit, OnDestroy {
             beginAtZero: true,
             max: 100,
             ticks: { 
-              color: 'rgba(255, 255, 255, 0.9)',
-              font: { size: 16, weight: '500' }
+              color: 'rgba(255, 255, 255, 0.8)',
+              font: { size: 12, weight: 'normal' },
+              callback: function(value) {
+                return value + '%';
+              }
             },
             grid: { 
-              color: 'rgba(255, 255, 255, 0.15)'
+              color: 'rgba(255, 255, 255, 0.1)'
             }
           },
           x: {
             ticks: { 
-              color: 'rgba(255, 255, 255, 0.9)',
-              font: { size: 14, weight: '500' }
+              color: 'rgba(255, 255, 255, 0.8)',
+              font: { size: 11, weight: 'normal' }
             },
             grid: { display: false }
           }
@@ -222,81 +258,82 @@ export class ProgressComponent implements OnInit, AfterViewInit, OnDestroy {
     };
 
     this.progressChart = new Chart(ctx, config);
-    console.log('Progress chart created');
   }
 
-  createCategoryChart() {
-    if (!this.categoryChartRef?.nativeElement) {
-      console.log('Category chart ref not found');
-      return;
-    }
+  createStrongChart() {
+    if (!this.strongChartRef?.nativeElement) return;
     
-    const ctx = this.categoryChartRef.nativeElement.getContext('2d');
+    const ctx = this.strongChartRef.nativeElement.getContext('2d');
     if (!ctx) return;
 
-    const categoryMap = new Map<string, number[]>();
+    const strongData = this.strongTopics.slice(0, 5);
     
-    this.testResults.forEach(result => {
-      if (!categoryMap.has(result.category)) {
-        categoryMap.set(result.category, []);
-      }
-      categoryMap.get(result.category)!.push(result.percentage);
-    });
+    if (strongData.length === 0) return;
 
-    const categories = Array.from(categoryMap.keys());
-    const averages = categories.map(cat => {
-      const scores = categoryMap.get(cat)!;
-      return Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
-    });
-
-    const colors = [
-      'rgba(139, 92, 246, 0.8)',
-      'rgba(236, 72, 153, 0.8)',
-      'rgba(251, 146, 60, 0.8)',
-      'rgba(34, 197, 94, 0.8)'
-    ];
+    const fullLabels = strongData.map(t => t.topic);
+    const shortLabels = strongData.map(t => this.truncateLabel(t.topic, 20));
 
     const config: ChartConfiguration<'bar'> = {
       type: 'bar',
       data: {
-        labels: categories,
+        labels: shortLabels,
         datasets: [{
-          label: 'Priemerná úspešnosť',
-          data: averages,
-          backgroundColor: colors.slice(0, categories.length),
-          borderWidth: 2,
-          borderRadius: 10
+          label: 'Úspešnosť',
+          data: strongData.map(t => Math.round(t.percentage)),
+          backgroundColor: 'rgba(34, 197, 94, 0.7)',
+          borderColor: 'rgba(34, 197, 94, 1)',
+          borderWidth: 1,
+          borderRadius: 4,
+          barThickness: 20
         }]
       },
       options: {
+        indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: false,
+        layout: {
+          padding: { right: 10 }
+        },
         plugins: {
           legend: { display: false },
-          title: {
-            display: true,
-            text: 'Úspešnosť podľa kategórií',
-            color: '#fff',
-            font: { size: 22, weight: 'bold' },
-            padding: { top: 10, bottom: 20 }
+          title: { display: false },
+          tooltip: {
+            callbacks: {
+              title: function(context) {
+                const index = context[0].dataIndex;
+                return fullLabels[index];
+              },
+              label: function(context) {
+                return 'Úspešnosť: ' + context.parsed.x + '%';
+              }
+            },
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+            titleFont: { size: 14, weight: 'bold' },
+            bodyFont: { size: 13 },
+            padding: 12,
+            cornerRadius: 8
           }
         },
         scales: {
-          y: {
+          x: {
             beginAtZero: true,
             max: 100,
             ticks: { 
-              color: 'rgba(255, 255, 255, 0.9)',
-              font: { size: 16, weight: '500' }
+              color: 'rgba(255, 255, 255, 0.7)',
+              font: { size: 10, weight: 'normal' },
+              stepSize: 25,
+              callback: function(value) {
+                return value + '%';
+              }
             },
             grid: { 
-              color: 'rgba(255, 255, 255, 0.15)'
+              color: 'rgba(34, 197, 94, 0.15)'
             }
           },
-          x: {
+          y: {
             ticks: { 
               color: 'rgba(255, 255, 255, 0.9)',
-              font: { size: 14, weight: '500' }
+              font: { size: 10, weight: 'normal' }
             },
             grid: { display: false }
           }
@@ -304,134 +341,98 @@ export class ProgressComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     };
 
-    this.categoryChart = new Chart(ctx, config);
-    console.log('Category chart created');
+    this.strongChart = new Chart(ctx, config);
   }
 
- createTopicsChart() {
-  if (!this.topicsChartRef?.nativeElement) {
-    console.log('Topics chart ref not found');
-    return;
-  }
-  
-  const ctx = this.topicsChartRef.nativeElement.getContext('2d');
-  if (!ctx) return;
+  createWeakChart() {
+    if (!this.weakChartRef?.nativeElement) return;
+    
+    const ctx = this.weakChartRef.nativeElement.getContext('2d');
+    if (!ctx) return;
 
-  const topicMap = new Map<string, { correct: number; total: number }>();
+    const weakData = this.weakTopics.slice(0, 5);
+    
+    if (weakData.length === 0) return;
 
-  this.testResults.forEach(result => {
-    result.topics.forEach(topic => {
-      if (!topicMap.has(topic)) {
-        topicMap.set(topic, { correct: 0, total: 0 });
-      }
-      const stats = topicMap.get(topic)!;
-      stats.total += result.totalQuestions;
-      stats.correct += result.correctAnswers;
-    });
-  });
+    const fullLabels = weakData.map(t => t.topic);
+    const shortLabels = weakData.map(t => this.truncateLabel(t.topic, 20));
 
-  const topicStats = Array.from(topicMap.entries())
-    .map(([topic, stats]) => ({
-      topic,
-      percentage: Math.round((stats.correct / stats.total) * 100)
-    }))
-    .sort((a, b) => a.percentage - b.percentage)
-    .slice(0, 10);
-
-  const topics = topicStats.map(t => t.topic);
-  const percentages = topicStats.map(t => t.percentage);
-
-  const backgroundColors = percentages.map(p => {
-    if (p >= 80) return 'rgba(34, 197, 94, 0.8)';
-    if (p >= 60) return 'rgba(251, 146, 60, 0.8)';
-    return 'rgba(239, 68, 68, 0.8)';
-  });
-
-  const config: ChartConfiguration<'bar'> = {
-    type: 'bar',
-    data: {
-      labels: topics,
-      datasets: [{
-        label: 'Úspešnosť (%)',
-        data: percentages,
-        backgroundColor: backgroundColors,
-        borderWidth: 0,
-        borderRadius: 6
-      }]
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { 
-          display: true,
-          position: 'bottom',
-          labels: {
-            color: '#fff',
-            font: { size: 14, weight: '500' },
-            padding: 15,
-            generateLabels: function() {
-              return [
-                {
-                  text: '🟢 Dobré (80%+)',
-                  fillStyle: 'rgba(34, 197, 94, 0.8)',
-                  hidden: false,
-                  index: 0
-                },
-                {
-                  text: '🟠 OK (60-79%)',
-                  fillStyle: 'rgba(251, 146, 60, 0.8)',
-                  hidden: false,
-                  index: 1
-                },
-                {
-                  text: '🔴 Slabé (<60%)',
-                  fillStyle: 'rgba(239, 68, 68, 0.8)',
-                  hidden: false,
-                  index: 2
-                }
-              ];
-            }
-          }
-        },
-        title: {
-          display: true,
-          text: 'Silné a slabé stránky podľa tém',
-          color: '#fff',
-          font: { size: 22, weight: 'bold' },
-          padding: { top: 10, bottom: 20 }
-        }
+    const config: ChartConfiguration<'bar'> = {
+      type: 'bar',
+      data: {
+        labels: shortLabels,
+        datasets: [{
+          label: 'Úspešnosť',
+          data: weakData.map(t => Math.round(t.percentage)),
+          backgroundColor: 'rgba(239, 68, 68, 0.7)',
+          borderColor: 'rgba(239, 68, 68, 1)',
+          borderWidth: 1,
+          borderRadius: 4,
+          barThickness: 20
+        }]
       },
-      scales: {
-        x: {
-          beginAtZero: true,
-          max: 100,
-          ticks: { 
-            color: 'rgba(255, 255, 255, 0.9)',
-            font: { size: 14, weight: '500' },
-            callback: function(value) {
-              return value + '%';
-            }
-          },
-          grid: { 
-            color: 'rgba(255, 255, 255, 0.15)'
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: {
+          padding: { right: 10 }
+        },
+        plugins: {
+          legend: { display: false },
+          title: { display: false },
+          tooltip: {
+            callbacks: {
+              title: function(context) {
+                const index = context[0].dataIndex;
+                return fullLabels[index];
+              },
+              label: function(context) {
+                return 'Úspešnosť: ' + context.parsed.x + '%';
+              }
+            },
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+            titleFont: { size: 14, weight: 'bold' },
+            bodyFont: { size: 13 },
+            padding: 12,
+            cornerRadius: 8
           }
         },
-        y: {
-          ticks: { 
-            color: 'rgba(255, 255, 255, 0.9)',
-            font: { size: 13, weight: '500' }
+        scales: {
+          x: {
+            beginAtZero: true,
+            max: 100,
+            ticks: { 
+              color: 'rgba(255, 255, 255, 0.7)',
+              font: { size: 10, weight: 'normal' },
+              stepSize: 25,
+              callback: function(value) {
+                return value + '%';
+              }
+            },
+            grid: { 
+              color: 'rgba(239, 68, 68, 0.15)'
+            }
           },
-          grid: { display: false }
+          y: {
+            ticks: { 
+              color: 'rgba(255, 255, 255, 0.9)',
+              font: { size: 10, weight: 'normal' }
+            },
+            grid: { display: false }
+          }
         }
       }
-    }
-  };
+    };
 
-  this.topicsChart = new Chart(ctx, config);
-  console.log('Topics chart created');
-}
+    this.weakChart = new Chart(ctx, config);
+  }
+
+  truncateLabel(label: string, maxLength: number): string {
+    if (label.length <= maxLength) return label;
+    return label.substring(0, maxLength - 3) + '...';
+  }
+
   updateCharts() {
     if (this.testResults.length === 0) return;
     
@@ -440,32 +441,20 @@ export class ProgressComponent implements OnInit, AfterViewInit, OnDestroy {
       this.createProgressChart();
     }
     
-    if (this.categoryChart) {
-      this.categoryChart.destroy();
-      this.createCategoryChart();
+    if (this.strongChart) {
+      this.strongChart.destroy();
+      this.createStrongChart();
     }
     
-    if (this.topicsChart) {
-      this.topicsChart.destroy();
-      this.createTopicsChart();
+    if (this.weakChart) {
+      this.weakChart.destroy();
+      this.createWeakChart();
     }
-  }
-
-  get xpForNextLevel(): number {
-    const currentUser = this.user();
-    if (!currentUser) return 100;
-    return Math.floor(100 * Math.pow(1.5, currentUser.level - 1));
-  }
-
-  get xpPercentage(): number {
-    const currentUser = this.user();
-    if (!currentUser) return 0;
-    return (currentUser.xp / this.xpForNextLevel) * 100;
   }
 
   ngOnDestroy() {
     if (this.progressChart) this.progressChart.destroy();
-    if (this.categoryChart) this.categoryChart.destroy();
-    if (this.topicsChart) this.topicsChart.destroy();
+    if (this.strongChart) this.strongChart.destroy();
+    if (this.weakChart) this.weakChart.destroy();
   }
 }

@@ -10,19 +10,12 @@
       <li><a routerLink="/quiz" routerLinkActive="active">Kvízy</a></li>
       <li><a routerLink="/materials" routerLinkActive="active">Materiály</a></li>
       <li><a routerLink="/progress" routerLinkActive="active">Progres</a></li>
-      
     </ul>
 
     <div class="nav-user" *ngIf="currentUser(); else loginBtn">
-      <div class="xp-badge">
-        <span class="xp-icon">⭐</span>
-        <span>{{currentUser()!.totalXP}} XP</span>
-      </div>
-      <div class="level-badge">
-        LVL {{currentUser()!.level}}
-      </div>
       <a routerLink="/profile" class="profile-btn">
         <span>👤</span>
+        <span class="profile-name">{{ currentUser()!.name }}</span>
       </a>
       <button class="logout-btn" (click)="logout()">
         Odhlásiť sa

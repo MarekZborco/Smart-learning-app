@@ -1,8 +1,13 @@
 <div class="login-container">
   <div class="login-card">
     <div class="login-header">
-      <h1>📚 LearnHub</h1>
+      <h1>📚 SmartLearningApp</h1>
       <p>{{isLoginMode ? 'Vitaj späť!' : 'Vytvor si účet'}}</p>
+    </div>
+
+    <!-- Success Message -->
+    <div class="success-message" *ngIf="successMessage">
+      {{successMessage}}
     </div>
 
     <!-- Login Form -->
@@ -33,7 +38,9 @@
         {{errorMessage}}
       </div>
 
-      <button type="submit" class="btn btn-primary">Prihlásiť sa</button>
+      <button type="submit" class="btn btn-primary" [disabled]="loading">
+        {{loading ? 'Prihlasujem...' : 'Prihlásiť sa'}}
+      </button>
     </form>
 
     <!-- Register Form -->
@@ -86,7 +93,9 @@
         {{errorMessage}}
       </div>
 
-      <button type="submit" class="btn btn-primary">Registrovať sa</button>
+      <button type="submit" class="btn btn-primary" [disabled]="loading">
+        {{loading ? 'Registrujem...' : 'Registrovať sa'}}
+      </button>
     </form>
 
     <div class="switch-mode">

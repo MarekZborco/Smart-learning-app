@@ -1,5 +1,4 @@
-import { Injectable, signal, computed, inject } from '@angular/core';
-import { AuthService } from './auth.service';
+import { Injectable, signal, computed } from '@angular/core';
 
 export interface TestResult {
   id: string;
@@ -9,25 +8,14 @@ export interface TestResult {
   maxScore: number;
   percentage: number;
   completedAt: Date;
-  xpEarned: number;
   correctAnswers: number;
   totalQuestions: number;
   topics: string[];
 }
 
-export interface Activity {
-  icon: string;
-  title: string;
-  time: string;
-  xp: number;
-}
-
 export interface UserStats {
   totalTests: number;
-  totalXP: number;
   averageScore: number;
-  studyHours: number;
-  currentStreak: number;
   testsByCategory: Map<string, number>;
   averageByCategory: Map<string, number>;
 }
@@ -36,15 +24,10 @@ export interface UserStats {
   providedIn: 'root'
 })
 export class UserService {
-  private authService = inject(AuthService);
-  
   private testResultsSignal = signal<TestResult[]>([]);
-  private activitiesSignal = signal<Activity[]>([]);
   
   testResults = this.testResultsSignal.asReadonly();
-  activities = this.activitiesSignal.asReadonly();
 
-  // Computed stats
   stats = computed<UserStats>(() => {
     const results = this.testResultsSignal();
     
@@ -66,18 +49,11 @@ export class UserService {
       averageByCategory.set(category, Math.round(avg));
     });
 
-    // KRITICKÉ: totalXP z usera, nie z výpočtu
-    const user = this.authService.currentUser();
-    const totalXP = user?.totalXP || 0;
-
     return {
       totalTests: results.length,
-      totalXP: totalXP,
       averageScore: results.length > 0 
         ? Math.round(results.reduce((sum, r) => sum + r.percentage, 0) / results.length)
         : 0,
-      studyHours: Math.floor(results.length * 0.5),
-      currentStreak: user?.streak || 0,
       testsByCategory,
       averageByCategory
     };
@@ -87,81 +63,14 @@ export class UserService {
     this.loadDataFromStorage();
   }
 
-  addTestResult(result: Omit<TestResult, 'id' | 'completedAt' | 'xpEarned'>): void {
-    const xpEarned = this.calculateXP(result.percentage, result.totalQuestions);
-    
+  addTestResult(result: Omit<TestResult, 'id' | 'completedAt'>): void {
     const testResult: TestResult = {
       ...result,
       id: Date.now().toString(),
-      completedAt: new Date(),
-      xpEarned
+      completedAt: new Date()
     };
 
-    // Pridaj do results
     this.testResultsSignal.update(results => [...results, testResult]);
-
-    // NOVÉ: Aktualizuj XP v AuthService
-    this.addXPToUser(xpEarned);
-
-    // Pridaj aktivitu
-    this.addActivity({
-      icon: '📝',
-      title: `${result.subject} dokončený`,
-      time: this.getTimeAgo(new Date()),
-      xp: xpEarned
-    });
-
-    this.saveDataToStorage();
-  }
-
-  // NOVÁ FUNKCIA: Pridaj XP užívateľovi
-  private addXPToUser(xp: number): void {
-    const user = this.authService.currentUser();
-    if (!user) {
-      console.error('No user logged in');
-      return;
-    }
-
-    let newXP = user.xp + xp;
-    let newLevel = user.level;
-    let newTotalXP = user.totalXP + xp;
-    
-    const xpForNextLevel = Math.floor(100 * Math.pow(1.5, newLevel - 1));
-
-    // Level up check
-    while (newXP >= xpForNextLevel) {
-      newXP -= xpForNextLevel;
-      newLevel++;
-      
-      console.log('🎉 LEVEL UP!', newLevel);
-      
-      // Pridaj level up aktivitu
-      this.addActivity({
-        icon: '⭐',
-        title: `Dosiahnutý level ${newLevel}`,
-        time: 'Práve teraz',
-        xp: 100
-      });
-    }
-
-    // Update user
-    this.authService.updateUser({
-      ...user,
-      xp: newXP,
-      level: newLevel,
-      totalXP: newTotalXP
-    });
-
-    console.log('✅ User updated:', {
-      level: newLevel,
-      xp: newXP,
-      totalXP: newTotalXP,
-      xpEarned: xp
-    });
-  }
-
-  addActivity(activity: Activity): void {
-    this.activitiesSignal.update(activities => [activity, ...activities].slice(0, 20));
     this.saveDataToStorage();
   }
 
@@ -186,38 +95,16 @@ export class UserService {
       .slice(0, 5);
   }
 
-  private calculateXP(percentage: number, totalQuestions: number): number {
-    let baseXP = totalQuestions * 2; // 2 XP za otázku
-    
-    if (percentage === 100) return baseXP * 2;
-    if (percentage >= 80) return Math.round(baseXP * 1.5);
-    if (percentage >= 60) return baseXP;
-    if (percentage >= 40) return Math.round(baseXP * 0.7);
-    return Math.round(baseXP * 0.5);
-  }
-
-  private getTimeAgo(date: Date): string {
-    const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
-    
-    if (seconds < 60) return 'Práve teraz';
-    if (seconds < 3600) return `Pred ${Math.floor(seconds / 60)} minútami`;
-    if (seconds < 86400) return `Pred ${Math.floor(seconds / 3600)} hodinami`;
-    if (seconds < 172800) return 'Včera';
-    return `Pred ${Math.floor(seconds / 86400)} dňami`;
-  }
-
   private saveDataToStorage(): void {
     const results = this.testResultsSignal().map(r => ({
       ...r,
       completedAt: r.completedAt.toISOString()
     }));
-    localStorage.setItem('learnhub_test_results', JSON.stringify(results));
-    localStorage.setItem('learnhub_activities', JSON.stringify(this.activitiesSignal()));
+    localStorage.setItem('smartlearning_test_results', JSON.stringify(results));
   }
 
   private loadDataFromStorage(): void {
-    const resultsJson = localStorage.getItem('learnhub_test_results');
-    const activitiesJson = localStorage.getItem('learnhub_activities');
+    const resultsJson = localStorage.getItem('smartlearning_test_results');
 
     if (resultsJson) {
       const results = JSON.parse(resultsJson).map((r: any) => ({
@@ -226,16 +113,10 @@ export class UserService {
       }));
       this.testResultsSignal.set(results);
     }
-
-    if (activitiesJson) {
-      this.activitiesSignal.set(JSON.parse(activitiesJson));
-    }
   }
 
   clearAllData(): void {
     this.testResultsSignal.set([]);
-    this.activitiesSignal.set([]);
-    localStorage.removeItem('learnhub_test_results');
-    localStorage.removeItem('learnhub_activities');
+    localStorage.removeItem('smartlearning_test_results');
   }
 }

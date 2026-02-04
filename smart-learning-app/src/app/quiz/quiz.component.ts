@@ -23,7 +23,6 @@ export class QuizComponent implements OnInit {
   correctAnswers = 0;
   quizFinished = false;
   quizStarted = false;
-  timeRemaining = 300;
   loading = false;
   error = signal<string | null>(null);
   selectedCategory = '';
@@ -31,10 +30,16 @@ export class QuizComponent implements OnInit {
   showingResult = false;
   isCorrect = false;
   correctAnswerIndex: number | null = null;
-  showExplanation = false;  // NOVÉ
+  showExplanation = false;
+  
+  // Toggle kalkulačky
+  showCalculator = false;
 
-  ngOnInit() {
-    // Nespúšťame automaticky, čakáme na výber kategórie
+  ngOnInit() {}
+
+  // Toggle kalkulačky
+  toggleCalculator(): void {
+    this.showCalculator = !this.showCalculator;
   }
 
   selectCategory(category: string) {
@@ -71,31 +76,26 @@ export class QuizComponent implements OnInit {
     
     this.firebaseService.getQuestions(this.selectedCategory).subscribe({
       next: (questions) => {
-        console.log('Načítané otázky:', questions.length);
-        
         if (questions.length === 0) {
           this.error.set('Žiadne otázky pre túto kategóriu');
           this.loading = false;
           return;
         }
         
-        // Zamiešaj a vyber náhodných 5 otázok
         const shuffled = this.shuffleArray([...questions]);
         const selected = shuffled.slice(0, 5);
         
-        console.log('Vybraných otázok:', selected.length);
         this.questions.set(selected);
         this.loading = false;
       },
       error: (error) => {
         console.error('Error loading questions:', error);
-        this.error.set('Chyba pri načítavaní otázok: ' + error.message);
+        this.error.set('Chyba pri načítavaní otázok');
         this.loading = false;
       }
     });
   }
 
-  // Metóda na zamiešanie poľa (Fisher-Yates shuffle)
   private shuffleArray<T>(array: T[]): T[] {
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -104,7 +104,6 @@ export class QuizComponent implements OnInit {
     return array;
   }
 
-  // NOVÉ - toggle vysvetlenia
   toggleExplanation(): void {
     this.showExplanation = !this.showExplanation;
   }
@@ -132,9 +131,7 @@ export class QuizComponent implements OnInit {
   }
 
   nextQuestion(): void {
-    if (this.selectedAnswer === null) {
-      return;
-    }
+    if (this.selectedAnswer === null) return;
 
     if (this.showingResult) {
       this.moveToNextQuestion();
@@ -144,10 +141,7 @@ export class QuizComponent implements OnInit {
     const questions = this.questions();
     const currentQ = questions[this.currentQuestion];
     
-    if (!currentQ) {
-      console.error('Aktuálna otázka neexistuje');
-      return;
-    }
+    if (!currentQ) return;
 
     const correctAnswer = currentQ.correctAnswer ?? 0;
     const points = currentQ.points ?? 10;
@@ -162,8 +156,6 @@ export class QuizComponent implements OnInit {
 
     this.showingResult = true;
 
-    // Ak je správna, automaticky pokračuj po 1.5s
-    // Ak je zlá, čakaj na kliknutie (aby si mohol pozrieť vysvetlenie)
     if (this.isCorrect) {
       setTimeout(() => {
         this.moveToNextQuestion();
@@ -180,37 +172,30 @@ export class QuizComponent implements OnInit {
       this.showingResult = false;
       this.isCorrect = false;
       this.correctAnswerIndex = null;
-      this.showExplanation = false;  // Reset vysvetlenia
+      this.showExplanation = false;
     } else {
       this.finishQuiz();
     }
   }
 
   finishQuiz(): void {
-    this.quizFinished = true;
-    
-    const questions = this.questions();
-    const maxScore = questions.reduce((sum, q) => sum + (q.points ?? 10), 0);
-    const topics = [...new Set(questions.map(q => q.topic))];
-    
-    this.userService.addTestResult({
-      subject: 'Matematika - ' + this.getCategoryName(),
-      category: this.selectedCategory,
-      score: this.score,
-      maxScore: maxScore,
-      percentage: this.percentage,
-      correctAnswers: this.correctAnswers,
-      totalQuestions: questions.length,
-      topics: topics
-    });
-
-    console.log('✅ Test dokončený:', {
-      percentage: this.percentage,
-      correctAnswers: this.correctAnswers,
-      totalQuestions: questions.length
-    });
-  }
-
+  this.quizFinished = true;
+  
+  const questions = this.questions();
+  const maxScore = questions.reduce((sum, q) => sum + (q.points ?? 10), 0);
+  const topics = [...new Set(questions.map(q => q.topic))];
+  
+  this.userService.addTestResult({
+    subject: 'Matematika - ' + this.getCategoryName(),
+    category: this.selectedCategory,
+    score: this.score,
+    maxScore: maxScore,
+    percentage: this.percentage,
+    correctAnswers: this.correctAnswers,
+    totalQuestions: questions.length,
+    topics: topics
+  });
+}
   getAnswerClass(index: number): string {
     if (!this.showingResult) {
       return this.selectedAnswer === index ? 'selected' : '';
@@ -233,7 +218,6 @@ export class QuizComponent implements OnInit {
     this.score = 0;
     this.correctAnswers = 0;
     this.quizFinished = false;
-    this.timeRemaining = 300;
     this.showingResult = false;
     this.isCorrect = false;
     this.correctAnswerIndex = null;

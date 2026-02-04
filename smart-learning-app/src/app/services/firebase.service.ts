@@ -1,19 +1,25 @@
 import { Injectable } from '@angular/core';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, getDocs, doc, getDoc } from 'firebase/firestore';
+import { getDatabase } from 'firebase/database';
+import { getAuth } from 'firebase/auth';
 import { Observable, from, map } from 'rxjs';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDtjpVuzgDuVTmIbUyUiQdT2KJ1id6mNhs",
   authDomain: "smartlearningapp-19324.firebaseapp.com",
+  databaseURL: "https://smartlearningapp-19324-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "smartlearningapp-19324",
   storageBucket: "smartlearningapp-19324.firebasestorage.app",
   messagingSenderId: "1096387359118",
   appId: "1:1096387359118:web:6c32db4979af934747f4df"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+// Firebase inicializácia
+export const app = initializeApp(firebaseConfig);
+export const firestore = getFirestore(app);
+export const realtimeDb = getDatabase(app);
+export const auth = getAuth(app);
 
 export interface Category {
   id: string;
@@ -30,7 +36,7 @@ export interface Question {
   topic: string;
   difficulty: 'easy' | 'medium' | 'hard';
   points: number;
-  explanation?: string;  // NOVÉ - vysvetlenie
+  explanation?: string;
 }
 
 export interface MaterialSection {
@@ -59,8 +65,8 @@ export interface MaterialExercise {
   number: string;
   text: string;
   difficulty: 'easy' | 'medium' | 'hard';
-  solution?: SolutionStep[];  // PRIDANÉ - opcionálne riešenie
-  answer?: string;            // PRIDANÉ - opcionálna odpoveď
+  solution?: SolutionStep[];
+  answer?: string;
 }
 
 export interface MaterialVideo {
@@ -83,7 +89,7 @@ export interface CategoryMaterials {
 export class FirebaseService {
 
   getCategories(): Observable<Category[]> {
-    const categoriesRef = collection(db, 'categories');
+    const categoriesRef = collection(firestore, 'categories');
     return from(getDocs(categoriesRef)).pipe(
       map(snapshot => {
         console.log('Nacitane kategorie:', snapshot.docs.length);
@@ -102,7 +108,7 @@ export class FirebaseService {
   }
 
   getCategory(categoryId: string): Observable<Category | null> {
-    const categoryRef = doc(db, 'categories', categoryId);
+    const categoryRef = doc(firestore, 'categories', categoryId);
     return from(getDoc(categoryRef)).pipe(
       map(docSnap => {
         if (docSnap.exists()) {
@@ -120,31 +126,31 @@ export class FirebaseService {
   }
 
   getQuestions(categoryId: string): Observable<Question[]> {
-  const questionsRef = collection(db, `categories/${categoryId}/questions`);
-  return from(getDocs(questionsRef)).pipe(
-    map(snapshot => {
-      console.log(`Nacitane otazky pre ${categoryId}:`, snapshot.docs.length);
-      return snapshot.docs.map(doc => {
-        const data = doc.data();
-        console.log('Otazka data:', doc.id, data);
-        
-        return {
-          id: doc.id,
-          question: data['question'] || data['name'] || 'Otazka nenajdena',
-          answers: data['answers'] || ['A', 'B', 'C', 'D'],
-          correctAnswer: data['correctAnswer'] ?? 0,
-          topic: data['topic'] || categoryId,
-          difficulty: data['difficulty'] || 'medium',
-          points: data['points'] ?? 10,
-          explanation: data['explanation'] || ''  // NOVÉ
-        } as Question;
-      });
-    })
-  );
-}
+    const questionsRef = collection(firestore, `categories/${categoryId}/questions`);
+    return from(getDocs(questionsRef)).pipe(
+      map(snapshot => {
+        console.log(`Nacitane otazky pre ${categoryId}:`, snapshot.docs.length);
+        return snapshot.docs.map(doc => {
+          const data = doc.data();
+          console.log('Otazka data:', doc.id, data);
+          
+          return {
+            id: doc.id,
+            question: data['question'] || data['name'] || 'Otazka nenajdena',
+            answers: data['answers'] || ['A', 'B', 'C', 'D'],
+            correctAnswer: data['correctAnswer'] ?? 0,
+            topic: data['topic'] || categoryId,
+            difficulty: data['difficulty'] || 'medium',
+            points: data['points'] ?? 10,
+            explanation: data['explanation'] || ''
+          } as Question;
+        });
+      })
+    );
+  }
 
   getQuestion(categoryId: string, questionId: string): Observable<Question | null> {
-    const questionRef = doc(db, `categories/${categoryId}/questions`, questionId);
+    const questionRef = doc(firestore, `categories/${categoryId}/questions`, questionId);
     return from(getDoc(questionRef)).pipe(
       map(docSnap => {
         if (docSnap.exists()) {
@@ -165,7 +171,7 @@ export class FirebaseService {
   }
 
   getMaterials(categoryId: string): Observable<CategoryMaterials | null> {
-    const materialsRef = doc(db, 'materials', categoryId);
+    const materialsRef = doc(firestore, 'materials', categoryId);
     return from(getDoc(materialsRef)).pipe(
       map(docSnap => {
         if (docSnap.exists()) {

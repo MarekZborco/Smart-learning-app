@@ -1,7 +1,7 @@
-<<div class="progress-container">
+<div class="progress-container">
   <!-- Header so štatistikami -->
   <div class="stats-header">
-    <h1>📊 Tvoj Progres</h1>
+    <h1>Tvoj Progres</h1>
     
     <div class="stats-cards">
       <div class="stat-card">
@@ -19,121 +19,93 @@
           <p class="stat-value">{{ stats().totalTests }}</p>
         </div>
       </div>
-
-      <div class="stat-card">
-        <div class="stat-icon">⚡</div>
-        <div class="stat-content">
-          <h3>Celkové XP</h3>
-          <p class="stat-value">{{ stats().totalXP }}</p>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon">🎯</div>
-        <div class="stat-content">
-          <h3>Hodiny učenia</h3>
-          <p class="stat-value">{{ stats().studyHours }}h</p>
-        </div>
-      </div>
     </div>
 
-    <!-- Zlepšenie -->
     <div class="improvement-badge" *ngIf="recentImprovement > 0">
-      <span class="badge-icon">🚀</span>
       <span class="badge-text">Zlepšil si sa o {{ recentImprovement | number:'1.0-1' }}%!</span>
     </div>
   </div>
 
-  <!-- Grafy -->
-  <div class="charts-section" *ngIf="testResults.length > 0">
-    <div class="chart-wrapper full-width">
-      <canvas #progressChart></canvas>
-    </div>
-
-    <div class="chart-row">
-      <div class="chart-wrapper">
-        <canvas #categoryChart></canvas>
-      </div>
-
-      <div class="chart-wrapper">
-        <canvas #topicsChart></canvas>
-      </div>
-    </div>
+  <!-- Hlavný graf progresu -->
+  <div class="chart-wrapper full-width" *ngIf="testResults.length > 0">
+    <canvas #progressChart></canvas>
   </div>
 
   <!-- Žiadne dáta -->
   <div class="no-data" *ngIf="testResults.length === 0">
-    <div class="no-data-icon">📚</div>
     <h2>Zatiaľ nemáš žiadne výsledky</h2>
     <p>Začni robiť testy a tu uvidíš svoj progres!</p>
-    <a routerLink="/home" class="btn-primary">Začať testovanie</a>
+    <a routerLink="/quiz" class="btn-primary">Otestuj sa</a>
   </div>
 
-  <!-- Analýza tém -->
-  <div class="topics-analysis" *ngIf="testResults.length > 0">
-    <!-- Slabé stránky -->
-    <div class="topics-section" *ngIf="weakTopics.length > 0">
-      <h2>🎯 Oblasti na zlepšenie</h2>
-      <p class="section-subtitle">Témy, ktorým by si mal venovať viac pozornosti</p>
-      
-      <div class="topics-list">
-        <div class="topic-item weak" *ngFor="let topic of weakTopics">
-          <div class="topic-header">
-            <span class="topic-name">{{ topic.topic }}</span>
-            <span class="topic-percentage">{{ topic.percentage | number:'1.0-1' }}%</span>
-          </div>
-          <div class="topic-details">
-            <span class="topic-stats">{{ topic.correct }}/{{ topic.total }} správnych</span>
-            <span class="topic-attempts">{{ topic.attempts }} pokusov</span>
-          </div>
-          <div class="progress-bar">
-            <div class="progress-fill weak" [style.width.%]="topic.percentage"></div>
+  <!-- Dva stĺpce: Silné a Slabé -->
+  <div class="two-columns" *ngIf="testResults.length > 0">
+    
+    <!-- ĽAVÝ STĹPEC - Silné stránky -->
+    <div class="column strong-column">
+      <div class="chart-wrapper small-chart positive-chart">
+        <h3 class="chart-title">Silné stránky</h3>
+        <div class="chart-container">
+          <canvas #strongChart></canvas>
+        </div>
+      </div>
+
+      <div class="topics-section" *ngIf="strongTopics.length > 0">
+        <h2>Tvoje silné stránky</h2>
+        <p class="section-subtitle">Výborne ti ide!</p>
+        
+        <div class="topics-list">
+          <div class="topic-item strong" *ngFor="let topic of strongTopics">
+            <div class="topic-header">
+              <span class="topic-name">{{ topic.topic }}</span>
+              <span class="topic-percentage strong-text">{{ topic.percentage | number:'1.0-1' }}%</span>
+            </div>
+            <div class="topic-details">
+              <span class="topic-stats">{{ topic.correct }}/{{ topic.total }} správnych</span>
+              <span class="topic-badge">Výborne!</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill strong" [style.width.%]="topic.percentage"></div>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Silné stránky -->
-    <div class="topics-section" *ngIf="strongTopics.length > 0">
-      <h2>💪 Tvoje silné stránky</h2>
-      <p class="section-subtitle">Témy, v ktorých si výborný</p>
-      
-      <div class="topics-list">
-        <div class="topic-item strong" *ngFor="let topic of strongTopics">
-          <div class="topic-header">
-            <span class="topic-name">{{ topic.topic }}</span>
-            <span class="topic-percentage">{{ topic.percentage | number:'1.0-1' }}%</span>
-          </div>
-          <div class="topic-details">
-            <span class="topic-stats">{{ topic.correct }}/{{ topic.total }} správnych</span>
-            <span class="topic-attempts">{{ topic.attempts }} pokusov</span>
-          </div>
-          <div class="progress-bar">
-            <div class="progress-fill strong" [style.width.%]="topic.percentage"></div>
-          </div>
+    <!-- PRAVÝ STĹPEC - Slabé stránky -->
+    <div class="column weak-column">
+      <div class="chart-wrapper small-chart negative-chart">
+        <h3 class="chart-title">Potrebuje zlepšenie</h3>
+        <div class="chart-container">
+          <canvas #weakChart></canvas>
+        </div>
+      </div>
+
+      <div class="topics-section" *ngIf="weakTopics.length > 0">
+        <h2>Slabé stránky</h2>
+        <p class="section-subtitle">Klikni na tému a prejdi na študijné materiály</p>
+        
+        <div class="topics-list">
+          <a 
+            class="topic-item weak clickable" 
+            *ngFor="let topic of weakTopics"
+            [routerLink]="['/materials']"
+            [queryParams]="{category: getCategoryForTopic(topic.topic), section: topic.topic}">
+            <div class="topic-header">
+              <span class="topic-name">{{ topic.topic }}</span>
+              <span class="topic-percentage weak-text">{{ topic.percentage | number:'1.0-1' }}%</span>
+            </div>
+            <div class="topic-details">
+              <span class="topic-stats">{{ topic.correct }}/{{ topic.total }} správnych</span>
+              <span class="topic-action">Študovať →</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill weak" [style.width.%]="topic.percentage"></div>
+            </div>
+          </a>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Odporúčania -->
-  <div class="recommendations" *ngIf="weakTopics.length > 0">
-    <h2>💡 Odporúčania</h2>
-    <div class="recommendation-cards">
-      <div class="recommendation-card">
-        <span class="rec-icon">📖</span>
-        <h3>Zameraj sa na slabé témy</h3>
-        <p>Venuj viac času témam: {{ weakTopics[0].topic }}</p>
-      <div class="recommendation-card">
-        <span class="rec-icon">🔄</span>
-        <h3>Pravidelné opakovanie</h3>
-        <p>Opakuj si materiál každý deň aspoň 15 minút</p>
-      </div>
-      <div class="recommendation-card">
-        <span class="rec-icon">🎮</span>
-        <h3>Používaj rôzne metódy</h3>
-        <p>Skús kvízy, karty a praktické úlohy</p>
-      </div>
-    </div>
   </div>
 </div>

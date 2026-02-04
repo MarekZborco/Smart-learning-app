@@ -17,38 +17,48 @@ export class LoginComponent {
 
   isLoginMode = true;
   
-  // Login data
   loginEmail = '';
   loginPassword = '';
   
-  // Register data
   registerName = '';
   registerEmail = '';
   registerPassword = '';
   registerPasswordConfirm = '';
 
   errorMessage = '';
+  successMessage = '';
+  loading = false;
 
   switchMode(): void {
     this.isLoginMode = !this.isLoginMode;
     this.errorMessage = '';
+    this.successMessage = '';
   }
 
-  onLogin(): void {
+  async onLogin(): Promise<void> {
     if (!this.loginEmail || !this.loginPassword) {
       this.errorMessage = 'Vyplň všetky polia';
       return;
     }
 
-    const success = this.authService.login(this.loginEmail, this.loginPassword);
-    if (success) {
-      this.router.navigate(['/']);
+    this.loading = true;
+    this.errorMessage = '';
+
+    const result = await this.authService.login(this.loginEmail, this.loginPassword);
+    
+    this.loading = false;
+
+    if (result.success) {
+      this.successMessage = '✅ Prihlásenie úspešné!';
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1000);
     } else {
-      this.errorMessage = 'Nesprávny email alebo heslo';
+      this.errorMessage = result.message || 'Prihlásenie zlyhalo';
     }
   }
 
-  onRegister(): void {
+  async onRegister(): Promise<void> {
     if (!this.registerName || !this.registerEmail || !this.registerPassword) {
       this.errorMessage = 'Vyplň všetky polia';
       return;
@@ -64,16 +74,25 @@ export class LoginComponent {
       return;
     }
 
-    const success = this.authService.register(
+    this.loading = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    const result = await this.authService.register(
       this.registerName,
       this.registerEmail,
       this.registerPassword
     );
 
-    if (success) {
-      this.router.navigate(['/']);
+    this.loading = false;
+
+    if (result.success) {
+      this.successMessage = '✅ Registrácia úspešná! Presmerovávam...';
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1500);
     } else {
-      this.errorMessage = 'Registrácia zlyhala';
+      this.errorMessage = result.message || 'Registrácia zlyhala';
     }
   }
 }

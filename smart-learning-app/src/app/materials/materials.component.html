@@ -7,7 +7,7 @@
   <div class="materials-container">
     <div class="materials-header">
       <h1>📚 Študijné materiály</h1>
-      <p>Vyber si kategóriu a štúduj teóriu, príklady a videá</p>
+      <p>Vyber si kategóriu a štúduj teóriu, vyrátaj si príklady </p>
     </div>
 
     <!-- Výber kategórie -->
@@ -81,7 +81,7 @@
 
         <!-- Vzorce -->
         <div class="formulas-box" *ngIf="currentSection()!.formulas && currentSection()!.formulas.length > 0">
-          <h3>📐 Vzorce</h3>
+          <h3> Vzorce</h3>
           <div class="formula-item" *ngFor="let formula of currentSection()!.formulas">
             {{formula}}
           </div>
@@ -89,7 +89,7 @@
 
         <!-- Príklady -->
         <div class="examples-section" *ngIf="currentSection()!.examples && currentSection()!.examples.length > 0">
-          <h3>💡 Vzorové príklady</h3>
+          <h3> Vzorové príklady</h3>
           <div class="example-card" *ngFor="let example of currentSection()!.examples">
             <div class="example-header">
               <strong>{{example.number}}</strong>
@@ -111,7 +111,7 @@
 
         <!-- Cvičenia -->
         <div class="exercises-section" *ngIf="currentSection()!.exercises && currentSection()!.exercises.length > 0">
-          <h3>✏️ Príklady na precvičenie</h3>
+          <h3> Príklady na precvičenie</h3>
           <div class="exercise-item" *ngFor="let exercise of currentSection()!.exercises">
             <div class="exercise-header">
               <span class="exercise-number">{{exercise.number}}</span>
@@ -125,7 +125,7 @@
               class="btn-show-solution" 
               (click)="toggleExerciseSolution(currentSection()!.id, exercise.number)"
               *ngIf="exercise.solution && exercise.solution.length > 0">
-              {{ isSolutionVisible(currentSection()!.id, exercise.number) ? '🙈 Skryť riešenie' : '💡 Zobraziť riešenie' }}
+              {{ isSolutionVisible(currentSection()!.id, exercise.number) ? ' Skryť riešenie' : ' Zobraziť riešenie' }}
             </button>
             
             <div class="exercise-solution" *ngIf="isSolutionVisible(currentSection()!.id, exercise.number) && exercise.solution">
