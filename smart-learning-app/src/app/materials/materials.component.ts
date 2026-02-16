@@ -15,16 +15,14 @@ export class MaterialsComponent implements OnInit {
   private firebaseService = inject(FirebaseService);
   private route = inject(ActivatedRoute);
 
+  selectedSubject = signal<string>('matematika');
   selectedCategory = signal<string>('kombinatorika');
   selectedSectionId = signal<string | null>(null); 
   materials = signal<CategoryMaterials | null>(null);
   loading = signal<boolean>(false);
   error = signal<string | null>(null);
   
-  // Sledovanie viditeľnosti riešení pre každé cvičenie
   exerciseSolutionsVisible: Map<string, boolean> = new Map();
-
-  // Uloženie query params pre neskoršie použitie
   private pendingSection: string | null = null;
 
   currentSection = computed(() => {
@@ -38,18 +36,32 @@ export class MaterialsComponent implements OnInit {
   });
 
   ngOnInit() {
-    // Čítaj query parametre
     this.route.queryParams.subscribe(params => {
+      const subject = params['subject'] || 'matematika';
       const category = params['category'];
       const section = params['section'];
+      
+      this.selectedSubject.set(subject);
       
       if (category) {
         this.pendingSection = section || null;
         this.selectCategory(category);
       } else {
-        this.loadMaterials(this.selectedCategory());
+        // Default kategória podľa predmetu
+        const defaultCategory = subject === 'matematika' ? 'kombinatorika' : 'romantizmus';
+        this.selectCategory(defaultCategory);
       }
     });
+  }
+
+  selectSubject(subject: string) {
+    this.selectedSubject.set(subject);
+    this.selectedSectionId.set(null);
+    this.exerciseSolutionsVisible.clear();
+    
+    // Nastav default kategóriu pre predmet
+    const defaultCategory = subject === 'matematika' ? 'kombinatorika' : 'romantizmus';
+    this.selectCategory(defaultCategory);
   }
 
   selectCategory(category: string) {
@@ -64,41 +76,37 @@ export class MaterialsComponent implements OnInit {
     this.exerciseSolutionsVisible.clear();
   }
 
-  loadMaterials(categoryId: string) {
-    this.loading.set(true);
-    this.error.set(null);
-    
-    this.firebaseService.getMaterials(categoryId).subscribe({
-      next: (data) => {
-        console.log('Nacitane materialy:', data);
-        this.materials.set(data);
-        this.loading.set(false);
-        
-        // Ak máme pending section z URL, nájdi ju
-        if (this.pendingSection && data?.sections) {
-          this.findAndSelectSection(this.pendingSection, data.sections);
-          this.pendingSection = null;
-        } else if (data?.sections && data.sections.length > 0) {
-          // Inak vyber prvú sekciu
-          this.selectedSectionId.set(data.sections[0].id);
-        }
-      },
-      error: (err) => {
-        console.error('Chyba pri nacitavani materialov:', err);
-        this.error.set('Nepodarilo sa nacitat materialy');
-        this.loading.set(false);
+loadMaterials(categoryId: string) {
+  this.loading.set(true);
+  this.error.set(null);
+  
+  // Jednoducho použijeme categoryId, nie subject/category
+  this.firebaseService.getMaterials(categoryId).subscribe({
+    next: (data) => {
+      console.log('Nacitane materialy:', data);
+      this.materials.set(data);
+      this.loading.set(false);
+      
+      if (this.pendingSection && data?.sections) {
+        this.findAndSelectSection(this.pendingSection, data.sections);
+        this.pendingSection = null;
+      } else if (data?.sections && data.sections.length > 0) {
+        this.selectedSectionId.set(data.sections[0].id);
       }
-    });
-  }
+    },
+    error: (err) => {
+      console.error('Chyba pri nacitavani materialov:', err);
+      this.error.set('Materiály pre túto kategóriu ešte nie sú dostupné');
+      this.loading.set(false);
+    }
+  });
+}
 
-  // Metóda na nájdenie a výber sekcie podľa názvu
   findAndSelectSection(sectionName: string, sections: MaterialSection[]) {
-    // Najprv skús presné porovnanie
     let found = sections.find(s => 
       s.title.toLowerCase() === sectionName.toLowerCase()
     );
     
-    // Ak nenájde, skús čiastočné
     if (!found) {
       found = sections.find(s => 
         s.title.toLowerCase().includes(sectionName.toLowerCase()) ||
@@ -106,20 +114,14 @@ export class MaterialsComponent implements OnInit {
       );
     }
     
-    // Skús aj podľa ID sekcie
     if (!found) {
       found = sections.find(s => s.id === sectionName);
     }
     
     if (found) {
       this.selectedSectionId.set(found.id);
-      console.log('Nasla sa sekcia:', found.id, found.title);
-    } else {
-      // Ak nenájde, vyber prvú
-      if (sections.length > 0) {
-        this.selectedSectionId.set(sections[0].id);
-      }
-      console.log('Sekcia sa nenasla:', sectionName);
+    } else if (sections.length > 0) {
+      this.selectedSectionId.set(sections[0].id);
     }
   }
 

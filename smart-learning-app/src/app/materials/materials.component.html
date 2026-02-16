@@ -1,17 +1,35 @@
 <div class="materials-wrapper">
-  <!-- Kalkulačka hore vpravo (fixed) -->
-  <div class="calculator-fixed">
+  <!-- Kalkulačka hore vpravo (fixed) - len pre matematiku -->
+  <div class="calculator-fixed" *ngIf="selectedSubject() === 'matematika'">
     <app-calculator></app-calculator>
   </div>
 
   <div class="materials-container">
     <div class="materials-header">
-      <h1>📚 Študijné materiály</h1>
-      <p>Vyber si kategóriu a štúduj teóriu, vyrátaj si príklady </p>
+      <h1> Študijné materiály</h1>
+      <p>Vyber si predmet a kategóriu</p>
     </div>
 
-    <!-- Výber kategórie -->
-    <div class="categories-tabs">
+    <!-- Výber predmetu -->
+    <div class="subject-tabs">
+      <button 
+        class="subject-tab"
+        [class.active]="selectedSubject() === 'matematika'"
+        (click)="selectSubject('matematika')">
+        <span class="tab-icon"></span>
+        <span class="tab-text">Matematika</span>
+      </button>
+      <button 
+        class="subject-tab sjl-tab"
+        [class.active]="selectedSubject() === 'slovencina'"
+        (click)="selectSubject('slovencina')">
+        <span class="tab-icon"></span>
+        <span class="tab-text">Slovenčina</span>
+      </button>
+    </div>
+
+    <!-- Kategórie pre MATEMATIKU -->
+    <div class="categories-tabs" *ngIf="selectedSubject() === 'matematika'">
       <button 
         class="category-tab"
         [class.active]="selectedCategory() === 'kombinatorika'"
@@ -39,6 +57,45 @@
         (click)="selectCategory('postupnosti')">
         <span class="tab-icon">📈</span>
         <span class="tab-text">Postupnosti</span>
+      </button>
+    </div>
+
+    <!-- Kategórie pre SLOVENČINU -->
+    <div class="categories-tabs" *ngIf="selectedSubject() === 'slovencina'">
+      <button 
+        class="category-tab sjl-category"
+        [class.active]="selectedCategory() === 'romantizmus'"
+        (click)="selectCategory('romantizmus')">
+        <span class="tab-icon">🎭</span>
+        <span class="tab-text">Romantizmus</span>
+      </button>
+      <button 
+        class="category-tab sjl-category"
+        [class.active]="selectedCategory() === 'realizmus'"
+        (click)="selectCategory('realizmus')">
+        <span class="tab-icon">🏘️</span>
+        <span class="tab-text">Realizmus</span>
+      </button>
+      <button 
+        class="category-tab sjl-category"
+        [class.active]="selectedCategory() === 'svetova-literatura'"
+        (click)="selectCategory('svetova-literatura')">
+        <span class="tab-icon">🌍</span>
+        <span class="tab-text">Svetová literatúra</span>
+      </button>
+      <button 
+        class="category-tab sjl-category"
+        [class.active]="selectedCategory() === 'jazyk'"
+        (click)="selectCategory('jazyk')">
+        <span class="tab-icon">✍️</span>
+        <span class="tab-text">Jazyk</span>
+      </button>
+      <button 
+        class="category-tab sjl-category"
+        [class.active]="selectedCategory() === 'medzivojnova-literatura'"
+        (click)="selectCategory('medzivojnova-literatura')">
+        <span class="tab-icon">⚔️</span>
+        <span class="tab-text">Medzivojnová literatúra</span>
       </button>
     </div>
 
@@ -79,68 +136,78 @@
           <p class="theory-text">{{currentSection()!.theory}}</p>
         </div>
 
-        <!-- Vzorce -->
+        <!-- Vzorce (matematika) / Literárne zaradenie (slovenčina) -->
         <div class="formulas-box" *ngIf="currentSection()!.formulas && currentSection()!.formulas.length > 0">
-          <h3> Vzorce</h3>
+          <h3>{{ selectedSubject() === 'matematika' ? 'Vzorce' : 'Literárne zaradenie' }}</h3>
           <div class="formula-item" *ngFor="let formula of currentSection()!.formulas">
             {{formula}}
           </div>
         </div>
 
-        <!-- Príklady -->
+        <!-- Príklady (matematika) / Postavy a dielo (literatúra) / Kľúčové pojmy (jazyk) -->
         <div class="examples-section" *ngIf="currentSection()!.examples && currentSection()!.examples.length > 0">
-          <h3> Vzorové príklady</h3>
+          <h3>{{ selectedSubject() === 'matematika' ? 'Vzorové príklady' : (selectedCategory() === 'jazyk' ? 'Kľúčové pojmy a príklady' : 'Postavy a dielo') }}</h3>
           <div class="example-card" *ngFor="let example of currentSection()!.examples">
             <div class="example-header">
               <strong>{{example.number}}</strong>
             </div>
             <div class="example-problem">
-              <strong>Zadanie:</strong> {{example.problem}}
+              <strong>{{ selectedSubject() === 'matematika' ? 'Zadanie:' : '' }}</strong> {{example.problem}}
             </div>
-            <div class="example-solution" *ngIf="example.solution && example.solution.length > 0">
+            <div class="example-solution" *ngIf="selectedSubject() === 'matematika' && example.solution && example.solution.length > 0">
               <strong>Riešenie:</strong>
               <ol>
                 <li *ngFor="let step of example.solution">{{step.text}}</li>
               </ol>
             </div>
-            <div class="example-answer">
-              <strong>Odpoveď:</strong> {{example.answer}}
+            <div class="example-answer" *ngIf="example.answer">
+              <strong>{{ selectedSubject() === 'matematika' ? 'Odpoveď:' : (selectedCategory() === 'jazyk' ? 'Zapamätaj si:' : 'Hlavná myšlienka:') }}</strong> {{example.answer}}
             </div>
           </div>
         </div>
 
-        <!-- Cvičenia -->
+        <!-- Cvičenia (matematika) / Stručný dej (slovenčina) -->
         <div class="exercises-section" *ngIf="currentSection()!.exercises && currentSection()!.exercises.length > 0">
-          <h3> Príklady na precvičenie</h3>
+          <h3>{{ selectedSubject() === 'matematika' ? 'Príklady na precvičenie' : (selectedCategory() === 'jazyk' ? 'Stručné vysvetlenie' : 'Stručný dej') }}</h3>
+          
           <div class="exercise-item" *ngFor="let exercise of currentSection()!.exercises">
-            <div class="exercise-header">
-              <span class="exercise-number">{{exercise.number}}</span>
-              <span class="exercise-text">{{exercise.text}}</span>
-              <span class="difficulty-badge" [ngClass]="'difficulty-' + exercise.difficulty">
-                {{exercise.difficulty === 'easy' ? '🟢 Ľahké' : exercise.difficulty === 'medium' ? '🟡 Stredné' : '🔴 Ťažké'}}
-              </span>
-            </div>
-            
-            <button 
-              class="btn-show-solution" 
-              (click)="toggleExerciseSolution(currentSection()!.id, exercise.number)"
-              *ngIf="exercise.solution && exercise.solution.length > 0">
-              {{ isSolutionVisible(currentSection()!.id, exercise.number) ? ' Skryť riešenie' : ' Zobraziť riešenie' }}
-            </button>
-            
-            <div class="exercise-solution" *ngIf="isSolutionVisible(currentSection()!.id, exercise.number) && exercise.solution">
-              <div class="solution-steps">
-                <div class="solution-step" *ngFor="let step of exercise.solution">
-                  <span class="step-number">{{step.step}}.</span>
-                  <span class="step-text">{{step.text}}</span>
+            <!-- Matematika - s obtiažnosťou a riešením -->
+            <ng-container *ngIf="selectedSubject() === 'matematika'">
+              <div class="exercise-header">
+                <span class="exercise-number">{{exercise.number}}</span>
+                <span class="exercise-text">{{exercise.text}}</span>
+                <span class="difficulty-badge" [ngClass]="'difficulty-' + exercise.difficulty">
+                  {{exercise.difficulty === 'easy' ? '🟢 Ľahké' : exercise.difficulty === 'medium' ? '🟡 Stredné' : '🔴 Ťažké'}}
+                </span>
+              </div>
+              
+              <button 
+                class="btn-show-solution" 
+                (click)="toggleExerciseSolution(currentSection()!.id, exercise.number)"
+                *ngIf="exercise.solution && exercise.solution.length > 0">
+                {{ isSolutionVisible(currentSection()!.id, exercise.number) ? 'Skryť riešenie' : 'Zobraziť riešenie' }}
+              </button>
+              
+              <div class="exercise-solution" *ngIf="isSolutionVisible(currentSection()!.id, exercise.number) && exercise.solution">
+                <div class="solution-steps">
+                  <div class="solution-step" *ngFor="let step of exercise.solution">
+                    <span class="step-number">{{step.step}}.</span>
+                    <span class="step-text">{{step.text}}</span>
+                  </div>
+                </div>
+                <div class="solution-answer" *ngIf="exercise.answer">
+                  <strong>Odpoveď:</strong> {{exercise.answer}}
                 </div>
               </div>
-              <div class="solution-answer" *ngIf="exercise.answer">
-                <strong>Odpoveď:</strong> {{exercise.answer}}
-              </div>
-            </div>
+            </ng-container>
+
+            <!-- Slovenčina - len text deja -->
+            <ng-container *ngIf="selectedSubject() === 'slovencina'">
+              <div class="dej-text">{{exercise.text}}</div>
+            </ng-container>
           </div>
         </div>
       </div>
-
-  
+    </div>
+  </div>
+</div>

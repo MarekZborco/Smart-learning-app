@@ -5,6 +5,14 @@
       <span class="brand-name">SmartLearningApp</span>
     </div>
 
+    <!-- Hamburger - len mobile -->
+    <button class="hamburger" (click)="toggleMenu()" *ngIf="currentUser()">
+      <span class="hamburger-line" [class.open]="menuOpen"></span>
+      <span class="hamburger-line" [class.open]="menuOpen"></span>
+      <span class="hamburger-line" [class.open]="menuOpen"></span>
+    </button>
+
+    <!-- Desktop menu -->
     <ul class="nav-menu" *ngIf="currentUser()">
       <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Domov</a></li>
       <li><a routerLink="/quiz" routerLinkActive="active">Kvízy</a></li>
@@ -12,7 +20,8 @@
       <li><a routerLink="/progress" routerLinkActive="active">Progres</a></li>
     </ul>
 
-    <div class="nav-user" *ngIf="currentUser(); else loginBtn">
+    <!-- Desktop user -->
+    <div class="nav-user-desktop" *ngIf="currentUser(); else loginBtn">
       <a routerLink="/profile" class="profile-btn">
         <span>👤</span>
         <span class="profile-name">{{ currentUser()!.name }}</span>
@@ -23,11 +32,22 @@
     </div>
 
     <ng-template #loginBtn>
-      <div class="nav-user">
+      <div class="nav-user-desktop">
         <button class="login-btn" routerLink="/login">
           Prihlásiť sa
         </button>
       </div>
     </ng-template>
+  </div>
+
+  <!-- Mobile dropdown -->
+  <div class="mobile-dropdown" [class.open]="menuOpen" *ngIf="currentUser()">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="closeMenu()">Domov</a>
+    <a routerLink="/quiz" routerLinkActive="active" (click)="closeMenu()">Kvízy</a>
+    <a routerLink="/materials" routerLinkActive="active" (click)="closeMenu()">Materiály</a>
+    <a routerLink="/progress" routerLinkActive="active" (click)="closeMenu()">Progres</a>
+    <div class="mobile-divider"></div>
+    <a routerLink="/profile" (click)="closeMenu()" class="mobile-profile">👤 {{ currentUser()!.name }}</a>
+    <button class="mobile-logout" (click)="logout()">Odhlásiť sa</button>
   </div>
 </nav>

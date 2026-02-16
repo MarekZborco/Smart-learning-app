@@ -26,24 +26,24 @@ export class QuizComponent implements OnInit {
   loading = false;
   error = signal<string | null>(null);
   selectedCategory = '';
+  selectedSubject = '';
   
   showingResult = false;
   isCorrect = false;
   correctAnswerIndex: number | null = null;
   showExplanation = false;
   
-  // Toggle kalkulačky
   showCalculator = false;
 
   ngOnInit() {}
 
-  // Toggle kalkulačky
   toggleCalculator(): void {
     this.showCalculator = !this.showCalculator;
   }
 
-  selectCategory(category: string) {
+  selectCategory(category: string, subject: string) {
     this.selectedCategory = category;
+    this.selectedSubject = subject;
     this.quizStarted = true;
     this.loadQuestions();
   }
@@ -57,6 +57,7 @@ export class QuizComponent implements OnInit {
     this.correctAnswers = 0;
     this.showingResult = false;
     this.showExplanation = false;
+    this.selectedSubject = '';
     this.questions.set([]);
   }
 
@@ -65,9 +66,20 @@ export class QuizComponent implements OnInit {
       'kombinatorika': 'Kombinatorika',
       'pravdepodobnost': 'Pravdepodobnosť',
       'statistika': 'Štatistika',
-      'postupnosti': 'Postupnosti'
+      'postupnosti': 'Postupnosti',
+      'literatura': 'Literatúra',
+      'slovensky-jazyk': 'Slovenský jazyk',
+      'romantizmus': 'Romantizmus',
+      'realizmus': 'Realizmus',
+      'svetova-literatura': 'Svetová literatúra',
+      'jazyk': 'Jazyk',
+      'medzivojnova-literatura': 'Medzivojnová literatúra'
     };
     return names[this.selectedCategory] || 'Test';
+  }
+
+  getSubjectPrefix(): string {
+    return this.selectedSubject === 'matematika' ? 'Matematika - ' : 'Slovenčina - ';
   }
 
   loadQuestions() {
@@ -179,23 +191,26 @@ export class QuizComponent implements OnInit {
   }
 
   finishQuiz(): void {
-  this.quizFinished = true;
-  
-  const questions = this.questions();
-  const maxScore = questions.reduce((sum, q) => sum + (q.points ?? 10), 0);
-  const topics = [...new Set(questions.map(q => q.topic))];
-  
-  this.userService.addTestResult({
-    subject: 'Matematika - ' + this.getCategoryName(),
-    category: this.selectedCategory,
-    score: this.score,
-    maxScore: maxScore,
-    percentage: this.percentage,
-    correctAnswers: this.correctAnswers,
-    totalQuestions: questions.length,
-    topics: topics
-  });
-}
+    this.quizFinished = true;
+    
+    const questions = this.questions();
+    const maxScore = questions.reduce((sum, q) => sum + (q.points ?? 10), 0);
+    const topics = [...new Set(questions.map(q => q.topic))];
+    
+    // Ukladaj progres pre OBA predmety
+    this.userService.addTestResult({
+      subject: this.getSubjectPrefix() + this.getCategoryName(),
+      category: this.selectedCategory,
+      subjectType: this.selectedSubject,
+      score: this.score,
+      maxScore: maxScore,
+      percentage: this.percentage,
+      correctAnswers: this.correctAnswers,
+      totalQuestions: questions.length,
+      topics: topics
+    });
+  }
+
   getAnswerClass(index: number): string {
     if (!this.showingResult) {
       return this.selectedAnswer === index ? 'selected' : '';

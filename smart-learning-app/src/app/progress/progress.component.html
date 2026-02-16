@@ -8,7 +8,7 @@
         <div class="stat-icon">📈</div>
         <div class="stat-content">
           <h3>Priemerná úspešnosť</h3>
-          <p class="stat-value">{{ stats().averageScore }}%</p>
+          <p class="stat-value">{{ currentStats.averageScore }}%</p>
         </div>
       </div>
 
@@ -16,9 +16,25 @@
         <div class="stat-icon">✅</div>
         <div class="stat-content">
           <h3>Dokončené testy</h3>
-          <p class="stat-value">{{ stats().totalTests }}</p>
+          <p class="stat-value">{{ currentStats.totalTests }}</p>
         </div>
       </div>
+    </div>
+
+    <!-- Taby Matematika / Slovenčina -->
+    <div class="subject-tabs">
+      <button 
+        class="subject-tab"
+        [class.active]="activeTab() === 'matematika'"
+        (click)="selectTab('matematika')">
+        🔢 Matematika
+      </button>
+      <button 
+        class="subject-tab sjl-tab"
+        [class.active]="activeTab() === 'slovencina'"
+        (click)="selectTab('slovencina')">
+        📖 Slovenčina
+      </button>
     </div>
 
     <div class="improvement-badge" *ngIf="recentImprovement > 0">
@@ -27,30 +43,30 @@
   </div>
 
   <!-- Hlavný graf progresu -->
-  <div class="chart-wrapper full-width" *ngIf="testResults.length > 0">
+  <div class="chart-wrapper full-width" *ngIf="filteredResults.length > 0">
     <canvas #progressChart></canvas>
   </div>
 
   <!-- Žiadne dáta -->
-  <div class="no-data" *ngIf="testResults.length === 0">
-    <h2>Zatiaľ nemáš žiadne výsledky</h2>
+  <div class="no-data" *ngIf="filteredResults.length === 0">
+    <h2>Zatiaľ nemáš žiadne výsledky z {{ activeTab() === 'matematika' ? 'matematiky' : 'slovenčiny' }}</h2>
     <p>Začni robiť testy a tu uvidíš svoj progres!</p>
     <a routerLink="/quiz" class="btn-primary">Otestuj sa</a>
   </div>
 
   <!-- Dva stĺpce: Silné a Slabé -->
-  <div class="two-columns" *ngIf="testResults.length > 0">
+  <div class="two-columns" *ngIf="filteredResults.length > 0">
     
-    <!-- ĽAVÝ STĹPEC - Silné stránky -->
+    <!-- ĽAVÝ STĹPEC - Silné stránky (ZELENÉ) -->
     <div class="column strong-column">
-      <div class="chart-wrapper small-chart positive-chart">
-        <h3 class="chart-title">Silné stránky</h3>
+      <div class="chart-wrapper small-chart positive-chart" *ngIf="strongTopics.length > 0">
+        <h3 class="chart-title green-title">Silné stránky</h3>
         <div class="chart-container">
           <canvas #strongChart></canvas>
         </div>
       </div>
 
-      <div class="topics-section" *ngIf="strongTopics.length > 0">
+      <div class="topics-section strong-section" *ngIf="strongTopics.length > 0">
         <h2>Tvoje silné stránky</h2>
         <p class="section-subtitle">Výborne ti ide!</p>
         
@@ -70,19 +86,25 @@
           </div>
         </div>
       </div>
+
+      <!-- Žiadne silné -->
+      <div class="topics-section empty-section" *ngIf="strongTopics.length === 0">
+        <h2>Silné stránky</h2>
+        <p class="section-subtitle">Zatiaľ nemáš žiadne silné témy (nad 70%).</p>
+      </div>
     </div>
 
-    <!-- PRAVÝ STĹPEC - Slabé stránky -->
+    <!-- PRAVÝ STĹPEC - Slabé stránky (ČERVENÉ) -->
     <div class="column weak-column">
-      <div class="chart-wrapper small-chart negative-chart">
-        <h3 class="chart-title">Potrebuje zlepšenie</h3>
+      <div class="chart-wrapper small-chart negative-chart" *ngIf="weakTopics.length > 0">
+        <h3 class="chart-title red-title">Potrebuje zlepšenie</h3>
         <div class="chart-container">
           <canvas #weakChart></canvas>
         </div>
       </div>
 
-      <div class="topics-section" *ngIf="weakTopics.length > 0">
-        <h2>Slabé stránky</h2>
+      <div class="topics-section weak-section" *ngIf="weakTopics.length > 0">
+        <h2 class="weak-heading">Slabé stránky</h2>
         <p class="section-subtitle">Klikni na tému a prejdi na študijné materiály</p>
         
         <div class="topics-list">
@@ -90,7 +112,11 @@
             class="topic-item weak clickable" 
             *ngFor="let topic of weakTopics"
             [routerLink]="['/materials']"
-            [queryParams]="{category: getCategoryForTopic(topic.topic), section: topic.topic}">
+            [queryParams]="{
+              subject: activeTab() === 'matematika' ? 'matematika' : 'slovencina',
+              category: getCategoryForTopic(topic.topic), 
+              section: topic.topic
+            }">
             <div class="topic-header">
               <span class="topic-name">{{ topic.topic }}</span>
               <span class="topic-percentage weak-text">{{ topic.percentage | number:'1.0-1' }}%</span>
@@ -104,6 +130,12 @@
             </div>
           </a>
         </div>
+      </div>
+
+      <!-- Žiadne slabé -->
+      <div class="topics-section empty-section success-empty" *ngIf="weakTopics.length === 0">
+        <h2>Slabé stránky</h2>
+        <p class="section-subtitle">🎉 Všetky témy máš nad 70%! Len tak ďalej!</p>
       </div>
     </div>
 

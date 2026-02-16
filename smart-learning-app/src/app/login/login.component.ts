@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -26,13 +26,25 @@ export class LoginComponent {
   registerPasswordConfirm = '';
 
   errorMessage = '';
-  successMessage = '';
   loading = false;
+  
+  private redirecting = false;
+
+  constructor() {
+    effect(() => {
+      const user = this.authService.currentUser();
+      if (user && !this.redirecting) {
+        this.redirecting = true;
+        setTimeout(() => {
+          this.router.navigate(['/']);
+        }, 100);
+      }
+    });
+  }
 
   switchMode(): void {
     this.isLoginMode = !this.isLoginMode;
     this.errorMessage = '';
-    this.successMessage = '';
   }
 
   async onLogin(): Promise<void> {
@@ -46,14 +58,8 @@ export class LoginComponent {
 
     const result = await this.authService.login(this.loginEmail, this.loginPassword);
     
-    this.loading = false;
-
-    if (result.success) {
-      this.successMessage = '✅ Prihlásenie úspešné!';
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 1000);
-    } else {
+    if (!result.success) {
+      this.loading = false;
       this.errorMessage = result.message || 'Prihlásenie zlyhalo';
     }
   }
@@ -76,7 +82,6 @@ export class LoginComponent {
 
     this.loading = true;
     this.errorMessage = '';
-    this.successMessage = '';
 
     const result = await this.authService.register(
       this.registerName,
@@ -84,14 +89,8 @@ export class LoginComponent {
       this.registerPassword
     );
 
-    this.loading = false;
-
-    if (result.success) {
-      this.successMessage = '✅ Registrácia úspešná! Presmerovávam...';
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 1500);
-    } else {
+    if (!result.success) {
+      this.loading = false;
       this.errorMessage = result.message || 'Registrácia zlyhala';
     }
   }

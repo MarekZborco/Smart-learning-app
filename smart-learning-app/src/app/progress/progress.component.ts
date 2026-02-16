@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, OnDestroy, effect, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, OnDestroy, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { UserService, TestResult } from '../services/user.service';
@@ -62,7 +62,11 @@ export class ProgressComponent implements OnInit, AfterViewInit, OnDestroy {
   strongChart?: Chart;
   weakChart?: Chart;
 
+  // Aktívny tab
+  activeTab = signal<'matematika' | 'slovencina'>('matematika');
+
   testResults: TestResult[] = [];
+  filteredResults: TestResult[] = [];
   
   weakTopics: TopicStats[] = [];
   strongTopics: TopicStats[] = [];
@@ -72,8 +76,16 @@ export class ProgressComponent implements OnInit, AfterViewInit, OnDestroy {
 
   stats = this.userService.stats;
 
-  // Mapovanie tém na kategórie
-  topicCategoryMap: { [key: string]: string } = {
+  // Štatistiky podľa aktívneho tabu
+  get currentStats() {
+    if (this.activeTab() === 'matematika') {
+      return this.userService.mathStats();
+    }
+    return this.userService.slovakStats();
+  }
+
+  // Mapovanie tém na kategórie - MATEMATIKA
+  mathTopicCategoryMap: { [key: string]: string } = {
     'Faktoriál': 'kombinatorika',
     'Kombinatorické pravidlo súčinu': 'kombinatorika',
     'Kombinatorické pravidlo súčtu': 'kombinatorika',
@@ -111,41 +123,87 @@ export class ProgressComponent implements OnInit, AfterViewInit, OnDestroy {
     'Súčet nekonečnej GP': 'postupnosti'
   };
 
+  // Mapovanie tém na kategórie - SLOVENČINA
+  slovakTopicCategoryMap: { [key: string]: string } = {
+    'Romantizmus': 'romantizmus',
+    'Realizmus': 'realizmus',
+    'Svetová literatúra': 'svetova-literatura',
+    'Medzivojnová literatúra': 'medzivojnova-literatura',
+    'Jazykové štýly': 'jazyk',
+    'Slohové postupy': 'jazyk',
+    'Slovné druhy': 'jazyk',
+    'Lexikológia': 'jazyk',
+    'Vetné členy': 'jazyk',
+    'Súvetia': 'jazyk',
+    'Morfológia': 'jazyk'
+  };
+
   constructor() {
     effect(() => {
       const results = this.userService.testResults();
       this.testResults = results;
-      this.calculateTopicStats();
+      this.filterAndUpdate();
       
       if (this.progressChart) {
-        setTimeout(() => this.updateCharts(), 100);
+        setTimeout(() => {
+          this.destroyCharts();
+          if (this.filteredResults.length > 0) {
+            this.createCharts();
+          }
+        }, 100);
       }
     });
   }
 
   ngOnInit() {
     this.testResults = this.userService.testResults();
-    this.calculateTopicStats();
+    this.filterAndUpdate();
   }
 
   ngAfterViewInit() {
     setTimeout(() => {
-      if (this.testResults.length > 0) {
+      if (this.filteredResults.length > 0) {
         this.createCharts();
       }
     }, 100);
   }
 
+  selectTab(tab: 'matematika' | 'slovencina'): void {
+    this.activeTab.set(tab);
+    this.filterAndUpdate();
+    
+    setTimeout(() => {
+      this.destroyCharts();
+      if (this.filteredResults.length > 0) {
+        this.createCharts();
+      }
+    }, 50);
+  }
+
+  private filterAndUpdate(): void {
+    const tab = this.activeTab();
+    this.filteredResults = this.testResults.filter(r => r.subjectType === tab);
+    this.calculateTopicStats();
+  }
+
   getCategoryForTopic(topic: string): string {
-    return this.topicCategoryMap[topic] || 'kombinatorika';
+    if (this.activeTab() === 'matematika') {
+      return this.mathTopicCategoryMap[topic] || 'kombinatorika';
+    }
+    return this.slovakTopicCategoryMap[topic] || 'romantizmus';
   }
 
   calculateTopicStats() {
-    if (this.testResults.length === 0) return;
+    if (this.filteredResults.length === 0) {
+      this.weakTopics = [];
+      this.strongTopics = [];
+      this.recentImprovement = 0;
+      return;
+    }
 
     const topicMap = new Map<string, { correct: number; total: number; attempts: number }>();
 
-    this.testResults.forEach(result => {
+    this.filteredResults.forEach(result => {
       result.topics.forEach(topic => {
         if (!topicMap.has(topic)) {
           topicMap.set(topic, { correct: 0, total: 0, attempts: 0 });
@@ -170,20 +228,22 @@ export class ProgressComponent implements OnInit, AfterViewInit, OnDestroy {
     this.weakTopics = topicStats.filter(t => t.percentage < 70).slice(0, 5);
     this.strongTopics = topicStats.filter(t => t.percentage >= 70).slice(-5).reverse();
 
-    if (this.testResults.length >= 4) {
-      const half = Math.floor(this.testResults.length / 2);
-      const firstHalf = this.testResults.slice(0, half);
-      const secondHalf = this.testResults.slice(half);
+    if (this.filteredResults.length >= 4) {
+      const half = Math.floor(this.filteredResults.length / 2);
+      const firstHalf = this.filteredResults.slice(0, half);
+      const secondHalf = this.filteredResults.slice(half);
       
       const avgFirst = firstHalf.reduce((sum, r) => sum + r.percentage, 0) / firstHalf.length;
       const avgSecond = secondHalf.reduce((sum, r) => sum + r.percentage, 0) / secondHalf.length;
       
       this.recentImprovement = avgSecond - avgFirst;
+    } else {
+      this.recentImprovement = 0;
     }
   }
 
   createCharts() {
-    if (this.testResults.length === 0) return;
+    if (this.filteredResults.length === 0) return;
     
     try {
       this.createProgressChart();
@@ -200,8 +260,13 @@ export class ProgressComponent implements OnInit, AfterViewInit, OnDestroy {
     const ctx = this.progressChartRef.nativeElement.getContext('2d');
     if (!ctx) return;
 
-    const recentTests = this.testResults.slice(-10);
+    const recentTests = this.filteredResults.slice(-10);
     
+    const isMath = this.activeTab() === 'matematika';
+    const lineColor = isMath ? 'rgb(139, 92, 246)' : 'rgb(236, 72, 153)';
+    const bgColor = isMath ? 'rgba(139, 92, 246, 0.2)' : 'rgba(236, 72, 153, 0.2)';
+    const titleText = isMath ? 'Matematika - progres v čase' : 'Slovenčina - progres v čase';
+
     const config: ChartConfiguration<'line'> = {
       type: 'line',
       data: {
@@ -209,8 +274,8 @@ export class ProgressComponent implements OnInit, AfterViewInit, OnDestroy {
         datasets: [{
           label: 'Úspešnosť (%)',
           data: recentTests.map(r => r.percentage),
-          borderColor: 'rgb(139, 92, 246)',
-          backgroundColor: 'rgba(139, 92, 246, 0.2)',
+          borderColor: lineColor,
+          backgroundColor: bgColor,
           tension: 0.4,
           fill: true,
           pointRadius: 6,
@@ -225,7 +290,7 @@ export class ProgressComponent implements OnInit, AfterViewInit, OnDestroy {
           legend: { display: false },
           title: {
             display: true,
-            text: 'Tvoj progres v čase',
+            text: titleText,
             color: '#fff',
             font: { size: 20, weight: 'bold' },
             padding: { top: 10, bottom: 20 }
@@ -433,28 +498,19 @@ export class ProgressComponent implements OnInit, AfterViewInit, OnDestroy {
     return label.substring(0, maxLength - 3) + '...';
   }
 
+  private destroyCharts(): void {
+    if (this.progressChart) { this.progressChart.destroy(); this.progressChart = undefined; }
+    if (this.strongChart) { this.strongChart.destroy(); this.strongChart = undefined; }
+    if (this.weakChart) { this.weakChart.destroy(); this.weakChart = undefined; }
+  }
+
   updateCharts() {
-    if (this.testResults.length === 0) return;
-    
-    if (this.progressChart) {
-      this.progressChart.destroy();
-      this.createProgressChart();
-    }
-    
-    if (this.strongChart) {
-      this.strongChart.destroy();
-      this.createStrongChart();
-    }
-    
-    if (this.weakChart) {
-      this.weakChart.destroy();
-      this.createWeakChart();
-    }
+    if (this.filteredResults.length === 0) return;
+    this.destroyCharts();
+    this.createCharts();
   }
 
   ngOnDestroy() {
-    if (this.progressChart) this.progressChart.destroy();
-    if (this.strongChart) this.strongChart.destroy();
-    if (this.weakChart) this.weakChart.destroy();
+    this.destroyCharts();
   }
 }

@@ -20,6 +20,7 @@ export interface User {
   name: string;
   email: string;
   joinedDate: string;
+  avatar?: string;
 }
 
 @Injectable({
@@ -33,10 +34,12 @@ export class AuthService {
   constructor(private router: Router) {
     onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
-        console.log('User logged in:', firebaseUser.uid);
-        this.loadOrCreateUserProfile(firebaseUser);
+        console.log('onAuthStateChanged - User logged in:', firebaseUser.uid);
+        if (!this.currentUserSignal()) {
+          this.loadOrCreateUserProfile(firebaseUser);
+        }
       } else {
-        console.log('No user logged in');
+        console.log('onAuthStateChanged - No user logged in');
         this.currentUserSignal.set(null);
       }
     });
@@ -46,14 +49,7 @@ export class AuthService {
     try {
       const credential = await signInWithEmailAndPassword(auth, email, password);
       console.log('Login successful:', credential.user.uid);
-      
-      const fallbackProfile: User = {
-        id: credential.user.uid,
-        name: credential.user.displayName || email.split('@')[0],
-        email: email,
-        joinedDate: new Date().toLocaleDateString('sk-SK')
-      };
-      this.currentUserSignal.set(fallbackProfile);
+      await this.loadOrCreateUserProfile(credential.user);
       
       return { success: true };
     } catch (error: any) {
@@ -76,14 +72,14 @@ export class AuthService {
         id: credential.user.uid,
         name: name,
         email: email,
-        joinedDate: new Date().toLocaleDateString('sk-SK')
+        joinedDate: new Date().toLocaleDateString('sk-SK'),
+        avatar: '👤'
       };
       
       this.currentUserSignal.set(userProfile);
       
-      set(ref(realtimeDb, `users/${credential.user.uid}`), userProfile)
-        .then(() => console.log('Profile saved to database'))
-        .catch((err) => console.error('Could not save to database:', err));
+      await set(ref(realtimeDb, `users/${credential.user.uid}`), userProfile);
+      console.log('Profile saved to database');
       
       return { success: true };
     } catch (error: any) {
@@ -99,47 +95,58 @@ export class AuthService {
     try {
       await signOut(auth);
       this.currentUserSignal.set(null);
-      this.router.navigate(['/login']);
+      window.location.href = '/login';
     } catch (error) {
       console.error('Logout error:', error);
     }
   }
 
-  private loadOrCreateUserProfile(firebaseUser: any): void {
-    if (this.currentUserSignal() !== null) {
-      console.log('Profile already set');
-      return;
-    }
-
+  private async loadOrCreateUserProfile(firebaseUser: any): Promise<void> {
     const fallbackProfile: User = {
       id: firebaseUser.uid,
       name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Používateľ',
       email: firebaseUser.email || '',
-      joinedDate: new Date().toLocaleDateString('sk-SK')
+      joinedDate: new Date().toLocaleDateString('sk-SK'),
+      avatar: '👤'
     };
-
+    
     this.currentUserSignal.set(fallbackProfile);
-
+    
     const userRef = ref(realtimeDb, `users/${firebaseUser.uid}`);
+    
     get(userRef)
       .then((snapshot) => {
         if (snapshot.exists()) {
           const userData = snapshot.val() as User;
           this.currentUserSignal.set(userData);
-          console.log('Profile loaded from database:', userData);
+        } else {
+          set(userRef, fallbackProfile)
+            .then(() => console.log('New profile saved'))
+            .catch((err) => console.error('Could not save profile:', err));
         }
       })
-      .catch((err) => console.error('Could not load from database:', err));
+      .catch((err) => {
+        console.error('Could not load from database:', err);
+      });
   }
 
-  async updateUser(user: User): Promise<void> {
+  async updateUserProfile(name: string, avatar: string): Promise<void> {
+    const currentUser = this.currentUserSignal();
+    if (!currentUser) return;
+
     try {
-      const userRef = ref(realtimeDb, `users/${user.id}`);
-      await update(userRef, user);
-      this.currentUserSignal.set(user);
-      console.log('User updated:', user);
+      const updatedUser: User = {
+        ...currentUser,
+        name: name,
+        avatar: avatar
+      };
+
+      const userRef = ref(realtimeDb, `users/${currentUser.id}`);
+      await update(userRef, updatedUser);
+      this.currentUserSignal.set(updatedUser);
     } catch (error) {
-      console.error('Error updating user:', error);
+      console.error('Error updating profile:', error);
+      throw error;
     }
   }
 

@@ -11,3 +11,9 @@ body {
   min-height: 100vh;
   color: white;
 }
+/* Len materials kalkulačka skryť na mobile */
+@media (max-width: 768px) {
+  .calculator-fixed {
+    display: none !important;
+  }
+}

@@ -346,3 +346,28 @@
     grid-template-columns: 1fr;
   }
 }
+/* Slovenčina sekcia */
+.slovencina-section {
+  margin-top: 4rem;
+}
+
+.sjl-badge {
+  background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%) !important;
+}
+
+.sjl-card {
+  border-color: rgba(229, 62, 62, 0.3);
+}
+
+.sjl-card:hover {
+  border-color: rgba(229, 62, 62, 0.5);
+  box-shadow: 0 20px 40px rgba(229, 62, 62, 0.2);
+}
+
+.sjl-btn {
+  background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%) !important;
+}
+
+.sjl-btn:hover {
+  box-shadow: 0 4px 15px rgba(229, 62, 62, 0.4) !important;
+}

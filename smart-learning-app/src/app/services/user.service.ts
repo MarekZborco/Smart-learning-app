@@ -1,9 +1,13 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject, effect } from '@angular/core';
+import { AuthService } from './auth.service';
+import { ref, set, get } from 'firebase/database';
+import { realtimeDb } from './firebase.service';
 
 export interface TestResult {
   id: string;
   subject: string;
   category: string;
+  subjectType: string; // 'matematika' alebo 'slovencina'
   score: number;
   maxScore: number;
   percentage: number;
@@ -24,13 +28,40 @@ export interface UserStats {
   providedIn: 'root'
 })
 export class UserService {
+  private authService = inject(AuthService);
   private testResultsSignal = signal<TestResult[]>([]);
   
   testResults = this.testResultsSignal.asReadonly();
 
+  // Celkové štatistiky (oba predmety spolu)
   stats = computed<UserStats>(() => {
     const results = this.testResultsSignal();
-    
+    return this.calculateStats(results);
+  });
+
+  // Štatistiky LEN pre matematiku
+  mathStats = computed<UserStats>(() => {
+    const results = this.testResultsSignal().filter(r => r.subjectType === 'matematika');
+    return this.calculateStats(results);
+  });
+
+  // Štatistiky LEN pre slovenčinu
+  slovakStats = computed<UserStats>(() => {
+    const results = this.testResultsSignal().filter(r => r.subjectType === 'slovencina');
+    return this.calculateStats(results);
+  });
+
+  // Posledné testy LEN pre matematiku
+  mathResults = computed<TestResult[]>(() => {
+    return this.testResultsSignal().filter(r => r.subjectType === 'matematika');
+  });
+
+  // Posledné testy LEN pre slovenčinu
+  slovakResults = computed<TestResult[]>(() => {
+    return this.testResultsSignal().filter(r => r.subjectType === 'slovencina');
+  });
+
+  private calculateStats(results: TestResult[]): UserStats {
     const testsByCategory = new Map<string, number>();
     const scoresByCategory = new Map<string, number[]>();
 
@@ -57,13 +88,23 @@ export class UserService {
       testsByCategory,
       averageByCategory
     };
-  });
+  }
 
   constructor() {
-    this.loadDataFromStorage();
+    effect(() => {
+      const user = this.authService.currentUser();
+      if (user) {
+        this.loadDataFromFirebase(user.id);
+      } else {
+        this.testResultsSignal.set([]);
+      }
+    });
   }
 
   addTestResult(result: Omit<TestResult, 'id' | 'completedAt'>): void {
+    const currentUser = this.authService.currentUser();
+    if (!currentUser) return;
+
     const testResult: TestResult = {
       ...result,
       id: Date.now().toString(),
@@ -71,7 +112,7 @@ export class UserService {
     };
 
     this.testResultsSignal.update(results => [...results, testResult]);
-    this.saveDataToStorage();
+    this.saveDataToFirebase(currentUser.id);
   }
 
   getResultsByCategory(category: string): TestResult[] {
@@ -95,28 +136,52 @@ export class UserService {
       .slice(0, 5);
   }
 
-  private saveDataToStorage(): void {
+  private saveDataToFirebase(userId: string): void {
     const results = this.testResultsSignal().map(r => ({
       ...r,
       completedAt: r.completedAt.toISOString()
     }));
-    localStorage.setItem('smartlearning_test_results', JSON.stringify(results));
+    
+    const resultsRef = ref(realtimeDb, `test-results/${userId}`);
+    
+    set(resultsRef, results)
+      .then(() => console.log('Test results saved to Firebase for user:', userId))
+      .catch((err) => console.error('Could not save test results:', err));
   }
 
-  private loadDataFromStorage(): void {
-    const resultsJson = localStorage.getItem('smartlearning_test_results');
-
-    if (resultsJson) {
-      const results = JSON.parse(resultsJson).map((r: any) => ({
-        ...r,
-        completedAt: new Date(r.completedAt)
-      }));
-      this.testResultsSignal.set(results);
-    }
+  private loadDataFromFirebase(userId: string): void {
+    const resultsRef = ref(realtimeDb, `test-results/${userId}`);
+    
+    get(resultsRef)
+      .then((snapshot) => {
+        if (snapshot.exists()) {
+          const results = snapshot.val().map((r: any) => ({
+            ...r,
+            subjectType: r.subjectType || 'matematika', // fallback pre staré dáta
+            completedAt: new Date(r.completedAt)
+          }));
+          this.testResultsSignal.set(results);
+          console.log('Test results loaded from Firebase for user:', userId, results.length);
+        } else {
+          this.testResultsSignal.set([]);
+          console.log('No test results found for user:', userId);
+        }
+      })
+      .catch((err) => {
+        console.error('Could not load test results:', err);
+        this.testResultsSignal.set([]);
+      });
   }
 
   clearAllData(): void {
+    const currentUser = this.authService.currentUser();
+    if (!currentUser) return;
+    
     this.testResultsSignal.set([]);
-    localStorage.removeItem('smartlearning_test_results');
+    
+    const resultsRef = ref(realtimeDb, `test-results/${currentUser.id}`);
+    set(resultsRef, [])
+      .then(() => console.log('Test results cleared for user:', currentUser.id))
+      .catch((err) => console.error('Could not clear test results:', err));
   }
 }

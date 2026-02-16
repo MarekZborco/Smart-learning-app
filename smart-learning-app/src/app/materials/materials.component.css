@@ -616,3 +616,100 @@
     font-size: 0.7rem;
   }
 }
+/* Prepínač predmetov */
+.subject-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.subject-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  color: #a0aec0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.subject-tab:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.subject-tab.active {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+  border-color: #667eea;
+  color: white;
+}
+
+.subject-tab.sjl-tab.active {
+  background: linear-gradient(135deg, rgba(229, 62, 62, 0.3) 0%, rgba(197, 48, 48, 0.3) 100%);
+  border-color: #e53e3e;
+}
+
+/* Slovenčina kategórie */
+.sjl-category.active {
+  background: linear-gradient(135deg, rgba(229, 62, 62, 0.3) 0%, rgba(197, 48, 48, 0.3) 100%) !important;
+  border-color: #e53e3e !important;
+}
+/* Prepínač predmetov */
+.subject-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.subject-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  color: #a0aec0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.subject-tab:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.subject-tab.active {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+  border-color: #667eea;
+  color: white;
+}
+
+.subject-tab.sjl-tab.active {
+  background: linear-gradient(135deg, rgba(229, 62, 62, 0.3) 0%, rgba(197, 48, 48, 0.3) 100%);
+  border-color: #e53e3e;
+}
+
+/* Slovenčina kategórie */
+.sjl-category.active {
+  background: linear-gradient(135deg, rgba(229, 62, 62, 0.3) 0%, rgba(197, 48, 48, 0.3) 100%) !important;
+  border-color: #e53e3e !important;
+}
+
+/* Stručný dej */
+.dej-text {
+  color: #e0e0e0;
+  line-height: 1.8;
+  font-size: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  border-left: 3px solid #e53e3e;
+}

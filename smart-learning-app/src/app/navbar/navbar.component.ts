@@ -15,8 +15,18 @@ export class NavbarComponent {
   router = inject(Router);
   
   currentUser = this.authService.currentUser;
+  menuOpen = false;
+
+  toggleMenu(): void {
+    this.menuOpen = !this.menuOpen;
+  }
+
+  closeMenu(): void {
+    this.menuOpen = false;
+  }
 
   logout(): void {
+    this.closeMenu();
     this.authService.logout();
     this.router.navigate(['/login']);
   }

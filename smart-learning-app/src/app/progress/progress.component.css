@@ -64,6 +64,47 @@
   background-clip: text;
 }
 
+/* === SUBJECT TABS === */
+.subject-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.subject-tab {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  border: 2px solid rgba(139, 92, 246, 0.3);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #ccc;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.subject-tab:hover {
+  border-color: rgba(139, 92, 246, 0.5);
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.subject-tab.active {
+  border-color: #8b5cf6;
+  background: rgba(139, 92, 246, 0.2);
+  color: #fff;
+  font-weight: 600;
+}
+
+.subject-tab.sjl-tab.active {
+  border-color: #ec4899;
+  background: rgba(236, 72, 153, 0.2);
+}
+
+.subject-tab.sjl-tab:hover {
+  border-color: rgba(236, 72, 153, 0.5);
+  background: rgba(236, 72, 153, 0.1);
+}
+
 .improvement-badge {
   display: inline-flex;
   align-items: center;
@@ -102,20 +143,20 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+.green-title {
+  color: #4ade80;
+}
+
+.red-title {
+  color: #f87171;
+}
+
 .positive-chart {
   border: 1px solid rgba(34, 197, 94, 0.3);
 }
 
-.positive-chart .chart-title {
-  color: #4ade80;
-}
-
 .negative-chart {
   border: 1px solid rgba(239, 68, 68, 0.3);
-}
-
-.negative-chart .chart-title {
-  color: #f87171;
 }
 
 .chart-container {
@@ -168,6 +209,7 @@
   box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
 }
 
+/* === TOPICS SECTIONS === */
 .topics-section {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
@@ -176,9 +218,31 @@
   padding: 1.5rem;
 }
 
-.topics-section h2 {
+/* Silné stránky - zelený heading */
+.strong-section h2 {
   font-size: 1.25rem;
   margin-bottom: 0.3rem;
+  color: #4ade80;
+}
+
+/* Slabé stránky - červený heading */
+.weak-section {
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.weak-heading {
+  font-size: 1.25rem;
+  margin-bottom: 0.3rem;
+  color: #f87171 !important;
+}
+
+.empty-section h2 {
+  font-size: 1.25rem;
+  margin-bottom: 0.3rem;
+}
+
+.success-empty h2 {
+  color: #4ade80;
 }
 
 .section-subtitle {
@@ -306,6 +370,10 @@
 
   .stats-cards {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .subject-tabs {
+    flex-direction: column;
   }
 }
 
