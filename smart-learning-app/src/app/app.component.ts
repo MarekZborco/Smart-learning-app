@@ -20,4 +20,8 @@ import { NavbarComponent } from './navbar/navbar.component';
     }
   `]
 })
-export class AppComponent {}
+export class AppComponent {
+  title(title: any) {
+    throw new Error('Method not implemented.');
+  }
+}

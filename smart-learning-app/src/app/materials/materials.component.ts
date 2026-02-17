@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
-import { FirebaseService, CategoryMaterials, MaterialSection, MaterialVideo } from '../services/firebase.service';
+import { FirebaseService, CategoryMaterials, MaterialSection } from '../services/firebase.service';
 import { CalculatorComponent } from '../calculator/calculator.component';
 
 @Component({
@@ -17,18 +17,18 @@ export class MaterialsComponent implements OnInit {
 
   selectedSubject = signal<string>('matematika');
   selectedCategory = signal<string>('kombinatorika');
-  selectedSectionId = signal<string | null>(null); 
+  selectedSectionId = signal<string | null>(null);
   materials = signal<CategoryMaterials | null>(null);
   loading = signal<boolean>(false);
   error = signal<string | null>(null);
-  
+
   exerciseSolutionsVisible: Map<string, boolean> = new Map();
   private pendingSection: string | null = null;
 
   currentSection = computed(() => {
     const sections = this.getSections();
     const selectedId = this.selectedSectionId();
-    
+
     if (selectedId) {
       return sections.find(s => s.id === selectedId) || sections[0] || null;
     }
@@ -40,14 +40,13 @@ export class MaterialsComponent implements OnInit {
       const subject = params['subject'] || 'matematika';
       const category = params['category'];
       const section = params['section'];
-      
+
       this.selectedSubject.set(subject);
-      
+
       if (category) {
         this.pendingSection = section || null;
         this.selectCategory(category);
       } else {
-        // Default kategória podľa predmetu
         const defaultCategory = subject === 'matematika' ? 'kombinatorika' : 'romantizmus';
         this.selectCategory(defaultCategory);
       }
@@ -58,8 +57,7 @@ export class MaterialsComponent implements OnInit {
     this.selectedSubject.set(subject);
     this.selectedSectionId.set(null);
     this.exerciseSolutionsVisible.clear();
-    
-    // Nastav default kategóriu pre predmet
+
     const defaultCategory = subject === 'matematika' ? 'kombinatorika' : 'romantizmus';
     this.selectCategory(defaultCategory);
   }
@@ -76,48 +74,47 @@ export class MaterialsComponent implements OnInit {
     this.exerciseSolutionsVisible.clear();
   }
 
-loadMaterials(categoryId: string) {
-  this.loading.set(true);
-  this.error.set(null);
-  
-  // Jednoducho použijeme categoryId, nie subject/category
-  this.firebaseService.getMaterials(categoryId).subscribe({
-    next: (data) => {
-      console.log('Nacitane materialy:', data);
-      this.materials.set(data);
-      this.loading.set(false);
-      
-      if (this.pendingSection && data?.sections) {
-        this.findAndSelectSection(this.pendingSection, data.sections);
-        this.pendingSection = null;
-      } else if (data?.sections && data.sections.length > 0) {
-        this.selectedSectionId.set(data.sections[0].id);
+  loadMaterials(categoryId: string) {
+    this.loading.set(true);
+    this.error.set(null);
+
+    this.firebaseService.getMaterials(categoryId).subscribe({
+      next: (data) => {
+        console.log('Nacitane materialy:', data);
+        this.materials.set(data);
+        this.loading.set(false);
+
+        if (this.pendingSection && data?.sections) {
+          this.findAndSelectSection(this.pendingSection, data.sections);
+          this.pendingSection = null;
+        } else if (data?.sections && data.sections.length > 0) {
+          this.selectedSectionId.set(data.sections[0].id);
+        }
+      },
+      error: (err) => {
+        console.error('Chyba pri nacitavani materialov:', err);
+        this.error.set('Materiály pre túto kategóriu ešte nie sú dostupné');
+        this.loading.set(false);
       }
-    },
-    error: (err) => {
-      console.error('Chyba pri nacitavani materialov:', err);
-      this.error.set('Materiály pre túto kategóriu ešte nie sú dostupné');
-      this.loading.set(false);
-    }
-  });
-}
+    });
+  }
 
   findAndSelectSection(sectionName: string, sections: MaterialSection[]) {
-    let found = sections.find(s => 
+    let found = sections.find(s =>
       s.title.toLowerCase() === sectionName.toLowerCase()
     );
-    
+
     if (!found) {
-      found = sections.find(s => 
+      found = sections.find(s =>
         s.title.toLowerCase().includes(sectionName.toLowerCase()) ||
         sectionName.toLowerCase().includes(s.title.toLowerCase())
       );
     }
-    
+
     if (!found) {
       found = sections.find(s => s.id === sectionName);
     }
-    
+
     if (found) {
       this.selectedSectionId.set(found.id);
     } else if (sections.length > 0) {
@@ -141,9 +138,5 @@ loadMaterials(categoryId: string) {
 
   getSections(): MaterialSection[] {
     return this.materials()?.sections || [];
-  }
-
-  getVideos(): MaterialVideo[] {
-    return this.materials()?.videos || [];
   }
 }
