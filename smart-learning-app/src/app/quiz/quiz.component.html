@@ -1,32 +1,30 @@
 <div class="quiz-wrapper">
-  <!-- Výber kategórie - MIMO quiz-container -->
-  <div class="category-selection" *ngIf="!quizStarted">
+
+  <!-- VÝBER KATEGÓRIE -->
+  <div class="category-selection" *ngIf="!quizStarted && !modeSelection">
     <h1>Otestuj sa a zisti, kde potrebuješ zabrať</h1>
     <p class="category-subtitle">Vyber si predmet a kategóriu</p>
-    
+
     <div class="subjects-container">
       <!-- MATEMATIKA -->
       <div class="subject-section">
-        <h2 class="subject-title"> Matematika</h2>
+        <h2 class="subject-title">Matematika</h2>
         <div class="categories-grid-vertical">
           <button class="category-btn" (click)="selectCategory('kombinatorika', 'matematika')">
             <span class="category-icon">🔢</span>
             <h3>Kombinatorika</h3>
             <p>Faktoriály, variácie, permutácie</p>
           </button>
-          
           <button class="category-btn" (click)="selectCategory('pravdepodobnost', 'matematika')">
             <span class="category-icon">🎲</span>
             <h3>Pravdepodobnosť</h3>
             <p>Náhodné javy, Bernoulliho schéma</p>
           </button>
-          
           <button class="category-btn" (click)="selectCategory('statistika', 'matematika')">
             <span class="category-icon">📊</span>
             <h3>Štatistika</h3>
             <p>Priemer, medián, rozptyl</p>
           </button>
-          
           <button class="category-btn" (click)="selectCategory('postupnosti', 'matematika')">
             <span class="category-icon">📈</span>
             <h3>Postupnosti</h3>
@@ -35,19 +33,17 @@
         </div>
       </div>
 
-      <!-- ODDELOVAČ -->
       <div class="divider"></div>
 
       <!-- SLOVENČINA -->
       <div class="subject-section">
-        <h2 class="subject-title"> Slovenský jazyk a literatúra</h2>
+        <h2 class="subject-title">Slovenský jazyk a literatúra</h2>
         <div class="categories-grid-vertical">
           <button class="category-btn" (click)="selectCategory('literatura', 'slovencina')">
             <span class="category-icon">📖</span>
             <h3>Literatúra</h3>
             <p>Romantizmus, realizmus, svetová, medzivojnová lit.</p>
           </button>
-          
           <button class="category-btn" (click)="selectCategory('slovensky-jazyk', 'slovencina')">
             <span class="category-icon">✍️</span>
             <h3>Slovenský jazyk</h3>
@@ -58,23 +54,56 @@
     </div>
   </div>
 
-  <!-- Quiz container - len keď je quiz spustený -->
+  <!-- VÝBER ČASOVÉHO REŽIMU -->
+  <div class="mode-selection" *ngIf="modeSelection && !quizStarted">
+    <button class="btn-back" (click)="backToCategories()">← Späť</button>
+
+    <div class="mode-header">
+      <h1>Vyber režim kvízu</h1>
+      <p class="mode-subtitle">
+        {{ getSubjectPrefix() }}{{ getCategoryName() }}
+      </p>
+    </div>
+
+    <div class="mode-cards mode-cards-two">
+      <!-- BEZ ČASOVAČA -->
+      <div class="mode-card" (click)="startQuiz(false)">
+        <div class="mode-icon">🚫 ⏰</div>
+        <h3>Bez časovača</h3>
+        <p>Odpovedaj svojim tempom bez akéhokoľvek tlaku. Ideálne na učenie.</p>
+        <span class="mode-tag">Odporúčané</span>
+      </div>
+
+      <!-- 5 MINÚT -->
+      <div class="mode-card timed" (click)="startQuiz(true, 300)">
+        <div class="mode-icon">🕐</div>
+        <h3>5 minút</h3>
+        <p>Pohodlný časový limit. Simuluje podmienky písomky.</p>
+        <span class="mode-tag timed-tag">S časovačom</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- KVÍZ -->
   <div class="quiz-container" *ngIf="quizStarted">
     <div class="quiz-header">
-      <button class="btn-back" (click)="backToCategories()">
-        ← Späť
-      </button>
-      <h1>{{ getSubjectPrefix() }}{{getCategoryName()}}</h1>
+      <button class="btn-back" (click)="backToModeSelection()">← Späť</button>
+      <h1>{{ getSubjectPrefix() }}{{ getCategoryName() }}</h1>
       <div class="quiz-info">
         <div class="info-item">
           <span class="icon">📝</span>
-          <span>Otázka {{currentQuestion + 1}}/{{questions().length}}</span>
+          <span>Otázka {{ currentQuestion + 1 }}/{{ questions().length }}</span>
         </div>
         <div class="info-item">
           <span class="icon">🎯</span>
-          <span>{{score}} bodov</span>
+          <span>{{ score }} bodov</span>
         </div>
-        <!-- Toggle kalkulačky - len pre matematiku -->
+        <!-- Časovač - len ak je zapnutý -->
+        <div class="info-item timer-display" [ngClass]="timerClass" *ngIf="timedMode">
+          <span class="icon">⏱️</span>
+          <span>{{ formattedTime }}</span>
+        </div>
+        <!-- kalkulačka - len pre matematiku -->
         <button class="calculator-toggle" *ngIf="selectedSubject === 'matematika'" (click)="toggleCalculator()">
           <span class="icon">🧮</span>
           <span>{{ showCalculator ? 'Skryť' : 'Kalkulačka' }}</span>
@@ -88,16 +117,16 @@
 
     <!-- Otázka -->
     <div class="question-card" *ngIf="!quizFinished && questions().length > 0">
-      <h2 class="question-text">{{questions()[currentQuestion].question}}</h2>
-      
+      <h2 class="question-text">{{ questions()[currentQuestion].question }}</h2>
+
       <div class="answers-grid">
-        <button 
+        <button
           *ngFor="let answer of questions()[currentQuestion].answers; let i = index"
           class="answer-btn"
           [ngClass]="getAnswerClass(i)"
           (click)="selectAnswer(i)"
           [disabled]="showingResult">
-          {{answer}}
+          {{ answer }}
         </button>
       </div>
 
@@ -106,7 +135,6 @@
         <button class="btn-explanation" (click)="toggleExplanation()">
           {{ showExplanation ? 'Skryť vysvetlenie' : 'Ukázať vysvetlenie' }}
         </button>
-        
         <div class="explanation-box" *ngIf="showExplanation && questions()[currentQuestion].explanation">
           <div class="explanation-header">Vysvetlenie:</div>
           <p>{{ questions()[currentQuestion].explanation }}</p>
@@ -114,7 +142,7 @@
       </div>
 
       <button class="btn btn-next" (click)="nextQuestion()" [disabled]="selectedAnswer === null">
-        {{currentQuestion === questions().length - 1 ? 'Dokončiť' : 'Ďalej'}}
+        {{ currentQuestion === questions().length - 1 ? 'Dokončiť' : 'Ďalej' }}
       </button>
     </div>
 
@@ -126,7 +154,7 @@
 
     <!-- Error -->
     <div class="error-message" *ngIf="error()">
-      <p>{{error()}}</p>
+      <p>{{ error() }}</p>
       <button class="btn btn-secondary" (click)="backToCategories()">Späť na výber</button>
     </div>
 
@@ -139,22 +167,22 @@
       <p class="results-message" *ngIf="percentage < 70">
         Odporúčame ti preštudovať materiály a skúsiť test znova.
       </p>
-      
+
       <div class="results-stats">
         <div class="stat">
-          <div class="stat-value">{{score}}</div>
+          <div class="stat-value">{{ score }}</div>
           <div class="stat-label">Bodov</div>
         </div>
         <div class="stat">
-          <div class="stat-value">{{correctAnswers}}/{{questions().length}}</div>
+          <div class="stat-value">{{ correctAnswers }}/{{ questions().length }}</div>
           <div class="stat-label">Správne</div>
         </div>
         <div class="stat">
-          <div class="stat-value" [ngClass]="{'good': percentage >= 70, 'bad': percentage < 70}">{{percentage}}%</div>
+          <div class="stat-value" [ngClass]="{'good': percentage >= 70, 'bad': percentage < 70}">{{ percentage }}%</div>
           <div class="stat-label">Úspešnosť</div>
         </div>
       </div>
-      
+
       <div class="results-actions">
         <button class="btn btn-primary" (click)="restartQuiz()">Skúsiť znova</button>
         <button class="btn btn-secondary" routerLink="/materials">Študovať materiály</button>
@@ -163,8 +191,9 @@
     </div>
   </div>
 
-  <!-- Kalkulačka vedľa (desktop) / pod (mobilom) -->
+  <!-- Kalkulačka -->
   <div class="calculator-sidebar" *ngIf="quizStarted && showCalculator && selectedSubject === 'matematika'">
     <app-calculator></app-calculator>
   </div>
+
 </div>

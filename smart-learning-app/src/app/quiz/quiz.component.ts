@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { UserService } from '../services/user.service';
@@ -12,7 +12,7 @@ import { CalculatorComponent } from '../calculator/calculator.component';
   templateUrl: './quiz.component.html',
   styleUrl: './quiz.component.css'
 })
-export class QuizComponent implements OnInit {
+export class QuizComponent implements OnInit, OnDestroy {
   private userService = inject(UserService);
   private firebaseService = inject(FirebaseService);
 
@@ -27,28 +27,70 @@ export class QuizComponent implements OnInit {
   error = signal<string | null>(null);
   selectedCategory = '';
   selectedSubject = '';
-  
+
   showingResult = false;
   isCorrect = false;
   correctAnswerIndex: number | null = null;
   showExplanation = false;
-  
   showCalculator = false;
 
+  // Výber režimu (nový stav medzi výberom kategórie a kvízom)
+  modeSelection = false;
+
+  // Časovač
+  timedMode = false;
+  timeLimit = 0;        // celkový čas v sekundách (0 = bez limitu)
+  timeRemaining = 0;
+  private timerInterval: any = null;
+
   ngOnInit() {}
+
+  ngOnDestroy() {
+    this.stopTimer();
+  }
 
   toggleCalculator(): void {
     this.showCalculator = !this.showCalculator;
   }
 
+  // Po kliknutí na kategóriu - zobraz výber režimu
   selectCategory(category: string, subject: string) {
     this.selectedCategory = category;
     this.selectedSubject = subject;
+    this.modeSelection = true; // Zobraz výber režimu
+  }
+
+  // Spusti kvíz s vybraným režimom
+  startQuiz(timed: boolean, seconds: number = 0) {
+    this.timedMode = timed;
+    this.timeLimit = seconds;
+    this.timeRemaining = seconds;
+    this.modeSelection = false;
     this.quizStarted = true;
     this.loadQuestions();
   }
 
   backToCategories() {
+    this.stopTimer();
+    this.quizStarted = false;
+    this.quizFinished = false;
+    this.modeSelection = false;
+    this.currentQuestion = 0;
+    this.selectedAnswer = null;
+    this.score = 0;
+    this.correctAnswers = 0;
+    this.showingResult = false;
+    this.showExplanation = false;
+    this.selectedSubject = '';
+    this.timedMode = false;
+    this.timeLimit = 0;
+    this.timeRemaining = 0;
+    this.questions.set([]);
+  }
+
+  backToModeSelection() {
+    this.stopTimer();
+    this.modeSelection = true;
     this.quizStarted = false;
     this.quizFinished = false;
     this.currentQuestion = 0;
@@ -57,7 +99,9 @@ export class QuizComponent implements OnInit {
     this.correctAnswers = 0;
     this.showingResult = false;
     this.showExplanation = false;
-    this.selectedSubject = '';
+    this.timedMode = false;
+    this.timeLimit = 0;
+    this.timeRemaining = 0;
     this.questions.set([]);
   }
 
@@ -69,11 +113,6 @@ export class QuizComponent implements OnInit {
       'postupnosti': 'Postupnosti',
       'literatura': 'Literatúra',
       'slovensky-jazyk': 'Slovenský jazyk',
-      'romantizmus': 'Romantizmus',
-      'realizmus': 'Realizmus',
-      'svetova-literatura': 'Svetová literatúra',
-      'jazyk': 'Jazyk',
-      'medzivojnova-literatura': 'Medzivojnová literatúra'
     };
     return names[this.selectedCategory] || 'Test';
   }
@@ -85,7 +124,7 @@ export class QuizComponent implements OnInit {
   loadQuestions() {
     this.loading = true;
     this.error.set(null);
-    
+
     this.firebaseService.getQuestions(this.selectedCategory).subscribe({
       next: (questions) => {
         if (questions.length === 0) {
@@ -93,12 +132,16 @@ export class QuizComponent implements OnInit {
           this.loading = false;
           return;
         }
-        
+
         const shuffled = this.shuffleArray([...questions]);
         const selected = shuffled.slice(0, 5);
-        
         this.questions.set(selected);
         this.loading = false;
+
+        // Spusti časovač ak je nastavený
+        if (this.timedMode && this.timeLimit > 0) {
+          this.startTimer();
+        }
       },
       error: (error) => {
         console.error('Error loading questions:', error);
@@ -106,6 +149,42 @@ export class QuizComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  // Časovač
+  startTimer(): void {
+    this.stopTimer();
+    this.timerInterval = setInterval(() => {
+      if (this.timeRemaining > 0) {
+        this.timeRemaining--;
+      } else {
+        this.stopTimer();
+        this.finishQuiz(); // Čas vypršal
+      }
+    }, 1000);
+  }
+
+  stopTimer(): void {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
+  }
+
+  // Formátovanie času MM:SS
+  get formattedTime(): string {
+    const m = Math.floor(this.timeRemaining / 60);
+    const s = this.timeRemaining % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  }
+
+  // Farba časovača podľa zostávajúceho času
+  get timerClass(): string {
+    if (!this.timedMode) return '';
+    const ratio = this.timeRemaining / this.timeLimit;
+    if (ratio > 0.5) return 'timer-ok';
+    if (ratio > 0.25) return 'timer-warning';
+    return 'timer-danger';
   }
 
   private shuffleArray<T>(array: T[]): T[] {
@@ -118,11 +197,6 @@ export class QuizComponent implements OnInit {
 
   toggleExplanation(): void {
     this.showExplanation = !this.showExplanation;
-  }
-
-  get currentQ(): Question | undefined {
-    const questions = this.questions();
-    return questions.length > 0 ? questions[this.currentQuestion] : undefined;
   }
 
   get progressPercentage(): number {
@@ -152,7 +226,6 @@ export class QuizComponent implements OnInit {
 
     const questions = this.questions();
     const currentQ = questions[this.currentQuestion];
-    
     if (!currentQ) return;
 
     const correctAnswer = currentQ.correctAnswer ?? 0;
@@ -160,7 +233,7 @@ export class QuizComponent implements OnInit {
 
     this.isCorrect = this.selectedAnswer === correctAnswer;
     this.correctAnswerIndex = correctAnswer;
-    
+
     if (this.isCorrect) {
       this.score += points;
       this.correctAnswers++;
@@ -177,7 +250,7 @@ export class QuizComponent implements OnInit {
 
   private moveToNextQuestion(): void {
     const questions = this.questions();
-    
+
     if (this.currentQuestion < questions.length - 1) {
       this.currentQuestion++;
       this.selectedAnswer = null;
@@ -191,13 +264,13 @@ export class QuizComponent implements OnInit {
   }
 
   finishQuiz(): void {
+    this.stopTimer();
     this.quizFinished = true;
-    
+
     const questions = this.questions();
     const maxScore = questions.reduce((sum, q) => sum + (q.points ?? 10), 0);
     const topics = [...new Set(questions.map(q => q.topic))];
-    
-    // Ukladaj progres pre OBA predmety
+
     this.userService.addTestResult({
       subject: this.getSubjectPrefix() + this.getCategoryName(),
       category: this.selectedCategory,
@@ -215,19 +288,13 @@ export class QuizComponent implements OnInit {
     if (!this.showingResult) {
       return this.selectedAnswer === index ? 'selected' : '';
     }
-    
-    if (index === this.correctAnswerIndex) {
-      return 'correct';
-    }
-    
-    if (index === this.selectedAnswer && !this.isCorrect) {
-      return 'wrong';
-    }
-    
+    if (index === this.correctAnswerIndex) return 'correct';
+    if (index === this.selectedAnswer && !this.isCorrect) return 'wrong';
     return '';
   }
 
   restartQuiz(): void {
+    this.stopTimer();
     this.currentQuestion = 0;
     this.selectedAnswer = null;
     this.score = 0;
@@ -237,6 +304,7 @@ export class QuizComponent implements OnInit {
     this.isCorrect = false;
     this.correctAnswerIndex = null;
     this.showExplanation = false;
+    this.timeRemaining = this.timeLimit;
     this.loadQuestions();
   }
 }

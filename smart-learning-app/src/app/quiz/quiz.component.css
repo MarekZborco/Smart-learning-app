@@ -1,4 +1,4 @@
-/* Wrapper pre quiz + kalkulačku */
+/* Wrapper */
 .quiz-wrapper {
   display: flex;
   gap: 2rem;
@@ -20,7 +20,238 @@
   flex-shrink: 0;
 }
 
-/* Header */
+/* ==========================================
+   VÝBER KATEGÓRIE
+   ========================================== */
+.category-selection {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+  text-align: center;
+  min-height: calc(100vh - 150px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.category-selection h1 {
+  font-size: 2.2rem;
+  color: white;
+  margin-bottom: 0.75rem;
+  font-weight: 700;
+}
+
+.category-subtitle {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.1rem;
+  margin-bottom: 3rem;
+}
+
+.subjects-container {
+  display: flex;
+  gap: 4rem;
+  align-items: flex-start;
+  justify-content: center;
+  max-width: 1400px;
+  width: 100%;
+}
+
+.subject-section {
+  flex: 1;
+  max-width: 600px;
+}
+
+.subject-title {
+  font-size: 2rem;
+  color: white;
+  margin-bottom: 2rem;
+  text-align: center;
+  font-weight: 600;
+}
+
+.categories-grid-vertical {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.divider {
+  width: 2px;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.2) 20%,
+    rgba(255, 255, 255, 0.2) 80%,
+    transparent 100%
+  );
+  align-self: stretch;
+}
+
+.category-btn {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 2.5rem 1.5rem;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.category-btn:hover {
+  transform: translateY(-8px);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(102, 126, 234, 0.6);
+  box-shadow: 0 15px 40px rgba(102, 126, 234, 0.3);
+}
+
+.category-icon {
+  font-size: 3.5rem;
+  display: block;
+  margin-bottom: 1.2rem;
+}
+
+.category-btn h3 {
+  font-size: 1.35rem;
+  color: white;
+  margin-bottom: 0.7rem;
+  font-weight: 600;
+}
+
+.category-btn p {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* ==========================================
+   VÝBER REŽIMU
+   ========================================== */
+.mode-selection {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+  min-height: calc(100vh - 150px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.mode-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.mode-header h1 {
+  font-size: 2rem;
+  color: white;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.mode-subtitle {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 1rem;
+}
+
+.mode-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 750px;
+}
+
+.mode-cards-two {
+  max-width: 620px;
+}
+
+.mode-cards-two .mode-card {
+  padding: 3rem 2rem;
+}
+
+.mode-cards-two .mode-icon {
+  font-size: 3.5rem;
+}
+
+.mode-cards-two .mode-card h3 {
+  font-size: 1.5rem;
+}
+
+.mode-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 2.5rem 2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mode-card:hover {
+  transform: translateY(-6px);
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(102, 126, 234, 0.5);
+  box-shadow: 0 12px 35px rgba(102, 126, 234, 0.25);
+}
+
+.mode-card.timed:hover {
+  border-color: rgba(251, 146, 60, 0.5);
+  box-shadow: 0 12px 35px rgba(251, 146, 60, 0.2);
+}
+
+.mode-icon {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+}
+
+.mode-card h3 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: white;
+}
+
+.mode-card p {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.5;
+}
+
+.mode-tag {
+  display: inline-block;
+  margin-top: 0.75rem;
+  padding: 0.3rem 0.9rem;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(102, 126, 234, 0.2);
+  border: 1px solid rgba(102, 126, 234, 0.4);
+  color: #a5b4fc;
+}
+
+.mode-tag.timed-tag {
+  background: rgba(251, 146, 60, 0.15);
+  border-color: rgba(251, 146, 60, 0.4);
+  color: #fdba74;
+}
+
+/* ==========================================
+   KVÍZ HEADER
+   ========================================== */
 .quiz-header {
   text-align: center;
   margin-bottom: 2rem;
@@ -45,6 +276,12 @@
   font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.3s ease;
+}
+
+.mode-selection .btn-back {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
 }
 
 .btn-back:hover {
@@ -72,6 +309,40 @@
   font-size: 1.3rem;
 }
 
+/* Časovač farby */
+.timer-display {
+  font-weight: 700;
+  font-size: 1.1rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.timer-ok {
+  color: #4ade80;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.timer-warning {
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  animation: timerPulse 1s ease-in-out infinite;
+}
+
+.timer-danger {
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  animation: timerPulse 0.5s ease-in-out infinite;
+}
+
+@keyframes timerPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
 /* Toggle kalkulačky */
 .calculator-toggle {
   display: flex;
@@ -91,10 +362,6 @@
 .calculator-toggle:hover {
   background: rgba(102, 126, 234, 0.3);
   border-color: #667eea;
-}
-
-.calculator-toggle .icon {
-  font-size: 1.1rem;
 }
 
 /* Progress bar */
@@ -273,19 +540,13 @@
   margin-bottom: 1rem;
 }
 
-.results-icon.good {
-  animation: celebrateBounce 0.6s ease;
-}
-
-.results-icon.bad {
-  animation: sadShake 0.6s ease;
-}
+.results-icon.good { animation: celebrateBounce 0.6s ease; }
+.results-icon.bad  { animation: sadShake 0.6s ease; }
 
 @keyframes celebrateBounce {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.2); }
 }
-
 @keyframes sadShake {
   0%, 100% { transform: rotate(0deg); }
   25% { transform: rotate(-5deg); }
@@ -311,9 +572,7 @@
   margin-bottom: 2rem;
 }
 
-.stat {
-  text-align: center;
-}
+.stat { text-align: center; }
 
 .stat-value {
   font-size: 2.5rem;
@@ -322,13 +581,8 @@
   margin-bottom: 0.5rem;
 }
 
-.stat-value.good {
-  color: #4ade80;
-}
-
-.stat-value.bad {
-  color: #f87171;
-}
+.stat-value.good { color: #4ade80; }
+.stat-value.bad  { color: #f87171; }
 
 .stat-label {
   color: rgba(255, 255, 255, 0.8);
@@ -358,7 +612,6 @@
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
 }
-
 .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
@@ -369,133 +622,14 @@
   color: white;
   border: 2px solid rgba(255, 255, 255, 0.3);
 }
-
-.btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
+.btn-secondary:hover { background: rgba(255, 255, 255, 0.2); }
 
 .btn-tertiary {
   background: transparent;
   color: rgba(255, 255, 255, 0.7);
   border: none;
 }
-
-.btn-tertiary:hover {
-  color: white;
-  text-decoration: underline;
-}
-
-/* Category selection - PLNÁ ŠÍRKA */
-.category-selection {
-  width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 3rem 2rem;
-  text-align: center;
-  min-height: calc(100vh - 150px);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-.category-selection h1 {
-  font-size: 2.2rem;
-  color: white;
-  margin-bottom: 0.75rem;
-  font-weight: 700;
-}
-
-.category-subtitle {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 1.1rem;
-  margin-bottom: 3rem;
-}
-
-/* Subjects container */
-.subjects-container {
-  display: flex;
-  gap: 4rem;
-  align-items: flex-start;
-  justify-content: center;
-  max-width: 1400px;
-  width: 100%;
-}
-
-.subject-section {
-  flex: 1;
-  max-width: 600px;
-}
-
-.subject-title {
-  font-size: 2rem;
-  color: white;
-  margin-bottom: 2rem;
-  text-align: center;
-  font-weight: 600;
-}
-
-/* 2x2 GRID */
-.categories-grid-vertical {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
-}
-
-/* Oddelovač */
-.divider {
-  width: 2px;
-  background: linear-gradient(180deg, 
-    transparent 0%, 
-    rgba(255, 255, 255, 0.2) 20%, 
-    rgba(255, 255, 255, 0.2) 80%, 
-    transparent 100%
-  );
-  align-self: stretch;
-}
-
-/* Category button */
-.category-btn {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 2.5rem 1.5rem;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-align: center;
-  min-height: 200px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-.category-btn:hover {
-  transform: translateY(-8px);
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(102, 126, 234, 0.6);
-  box-shadow: 0 15px 40px rgba(102, 126, 234, 0.3);
-}
-
-.category-icon {
-  font-size: 3.5rem;
-  display: block;
-  margin-bottom: 1.2rem;
-}
-
-.category-btn h3 {
-  font-size: 1.35rem;
-  color: white;
-  margin-bottom: 0.7rem;
-  font-weight: 600;
-}
-
-.category-btn p {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 0.9rem;
-  line-height: 1.5;
-}
+.btn-tertiary:hover { color: white; text-decoration: underline; }
 
 /* Loading & Error */
 .loading {
@@ -514,13 +648,9 @@
   animation: spin 1s linear infinite;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 
-.loading p {
-  font-size: 1.1rem;
-}
+.loading p { font-size: 1.1rem; }
 
 .error-message {
   text-align: center;
@@ -529,7 +659,6 @@
   border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: 16px;
 }
-
 .error-message p {
   color: #f87171;
   font-size: 1.1rem;
@@ -539,14 +668,11 @@
 /* ==========================================
    RESPONSIVE
    ========================================== */
-
-/* Tablet - kalkulačka pod kvízom */
 @media (max-width: 1024px) {
   .quiz-wrapper {
     flex-direction: column;
     align-items: center;
   }
-  
   .calculator-sidebar {
     position: relative;
     top: auto;
@@ -562,144 +688,87 @@
     flex-direction: column;
     gap: 2rem;
   }
-  
   .divider {
     width: 100%;
     height: 2px;
-    background: linear-gradient(90deg, 
-      transparent 0%, 
-      rgba(255, 255, 255, 0.2) 20%, 
-      rgba(255, 255, 255, 0.2) 80%, 
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.2) 20%,
+      rgba(255, 255, 255, 0.2) 80%,
       transparent 100%
     );
   }
-  
-  .subject-section {
-    max-width: 100%;
+  .subject-section { max-width: 100%; }
+
+  .mode-cards {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
-/* Mobile */
 @media (max-width: 768px) {
-  .quiz-wrapper {
-    padding: 1rem;
-  }
-  
+  .quiz-wrapper { padding: 1rem; }
+
   .quiz-header h1 {
     font-size: 1.6rem;
     margin-top: 2.5rem;
   }
-  
+
   .btn-back {
     position: relative;
     margin-bottom: 1rem;
   }
-  
-  .quiz-info {
-    gap: 0.75rem;
+
+  .mode-selection .btn-back {
+    position: relative;
+    top: auto;
+    left: auto;
+    align-self: flex-start;
+    margin-bottom: 1.5rem;
   }
-  
-  .info-item {
-    font-size: 0.85rem;
-  }
-  
-  .question-card {
-    padding: 1.5rem;
-  }
-  
-  .question-text {
-    font-size: 1.3rem;
-  }
-  
-  .answers-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .answer-btn {
-    padding: 1rem;
-    font-size: 1rem;
-  }
-  
-  .results-card {
-    padding: 2rem 1.5rem;
-  }
-  
-  .results-card h2 {
-    font-size: 1.8rem;
-  }
-  
-  .results-stats {
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-  
-  .stat-value {
-    font-size: 2rem;
-  }
-  
-  .results-actions {
-    flex-direction: column;
-  }
-  
-  /* Kalkulačka na mobile - pod kvízom, plná šírka */
+
+  .quiz-info { gap: 0.75rem; }
+  .info-item { font-size: 0.85rem; }
+
+  .question-card { padding: 1.5rem; }
+  .question-text { font-size: 1.3rem; }
+  .answers-grid { grid-template-columns: 1fr; }
+  .answer-btn { padding: 1rem; font-size: 1rem; }
+
+  .results-card { padding: 2rem 1.5rem; }
+  .results-card h2 { font-size: 1.8rem; }
+  .results-stats { flex-direction: column; gap: 1.5rem; }
+  .stat-value { font-size: 2rem; }
+  .results-actions { flex-direction: column; }
+
   .calculator-sidebar {
     width: 100%;
     display: flex;
     justify-content: center;
   }
-  
-  /* Category selection - mobile */
+
   .category-selection {
     padding: 2rem 1rem;
     min-height: auto;
   }
-  
-  .category-selection h1 {
-    font-size: 1.6rem;
-  }
-  
-  .category-subtitle {
-    font-size: 0.9rem;
-    margin-bottom: 2rem;
-  }
-  
-  .categories-grid-vertical {
-    grid-template-columns: 1fr;
-  }
-  
-  .category-btn {
-    padding: 1.5rem 1.25rem;
-    min-height: 160px;
-  }
-  
-  .category-icon {
-    font-size: 2.5rem;
-  }
-  
-  .category-btn h3 {
-    font-size: 1.1rem;
-  }
-  
-  .category-btn p {
-    font-size: 0.8rem;
-  }
+  .category-selection h1 { font-size: 1.6rem; }
+  .category-subtitle { font-size: 0.9rem; margin-bottom: 2rem; }
+  .categories-grid-vertical { grid-template-columns: 1fr; }
+  .category-btn { padding: 1.5rem 1.25rem; min-height: 160px; }
+  .category-icon { font-size: 2.5rem; }
+  .category-btn h3 { font-size: 1.1rem; }
+  .category-btn p { font-size: 0.8rem; }
+
+  .mode-selection { padding: 2rem 1rem; min-height: auto; }
+  .mode-header h1 { font-size: 1.6rem; }
+  .mode-cards { grid-template-columns: 1fr; gap: 1rem; }
+  .mode-card { padding: 1.75rem 1.5rem; }
+  .mode-icon { font-size: 2.5rem; }
 }
 
 @media (max-width: 480px) {
-  .category-selection h1 {
-    font-size: 1.4rem;
-  }
-  
-  .category-btn {
-    padding: 1.25rem 1rem;
-  }
-  
-  .category-icon {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
-  }
-  
-  .category-btn h3 {
-    font-size: 1rem;
-  }
+  .category-selection h1 { font-size: 1.4rem; }
+  .category-btn { padding: 1.25rem 1rem; }
+  .category-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+  .category-btn h3 { font-size: 1rem; }
+  .mode-header h1 { font-size: 1.4rem; }
 }
